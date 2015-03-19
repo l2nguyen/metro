@@ -1,10 +1,12 @@
-#---------------
-#
-#
-#---------------
+#-----------------------------------------------------------#
+# METRO RIDERSHIP ANALYSIS
+# 
+# NOTE: Project for GA Data Science class. 
+# I'm interested in looking at the factors that affecst
+# Metro rail ridership and modeling their relationships
+#-----------------------------------------------------------#
 # CREATED BY: Lena Nguyen - March 15, 2015
-#---------------
-
+#-----------------------------------------------------------#
 
 #----------------#
 # IMPORT MODULES #
@@ -17,8 +19,19 @@ import datetime
 #------------#
 # DATA FILES #
 #------------#
+
+# Data of annual ridership by station (Originally PDF format)
+# Source: 
+# http://www.wmata.com/pdfs/planning/2014%2010%20Year%20Historical%20Rail%20Ridership.pdf
 metro = '/Users/Zelda/Data Science/GA/Project/Data/2014 10 Year Historical Rail Ridership.csv'
+
+# Data of daily ridership of metro rail from Open Data DC
+# Note: Not disaggregated by station
+# Source: http://www.opendatadc.org/dataset/wmata-metrorail-ridership-by-date
 metro2 = '/Users/Zelda/Data Science/GA/Project/Data/metro.csv'
+
+# Monthly data of gas prices in Lower Atlantic Region from EIA
+# Source URL: http://www.eia.gov/dnav/pet/pet_pri_gnd_dcus_r1z_m.htm
 gas = '/Users/Zelda/Data Science/GA/Project/Data/Gas Prices.csv'
 
 #-------------#
@@ -32,10 +45,13 @@ gas.columns=['Date','Price'] # Rename columns
 #------------#
 # QUICK LOOK #
 #------------#
+
+#-- METRO DATA --#
 metro.head(10)
 metro.describe()
 metro.dtypes
 
+#-- GAS DATA --#
 gas.head(10)
 gas.describe
 gas.dtypes
@@ -81,9 +97,15 @@ gas.set_index('Date', inplace=True)
 gas['Year']=gas.index.year
 # Month
 gas['Month']=gas.index.month
+gas['Month']=gas.Month.astype('int')
+# Quarterly assignment
+gas['Quarter']=[((x-1)//3)+1 for x in gas['Month']]
 
 # Check for missing data in variables                                        
- metro.isnull().sum() 
+metro.isnull().sum() 
+#--> No missing data
+
+gas.isnull().sum()
 #--> No missing data
 #------------------#
 # DATA INSPECTION  #
@@ -146,9 +168,20 @@ plt.legend().set_visible(False) # Hides legend
 #-----------------#
 
 # General trend of gas price over the years (1993-2015)                         
-gas.groupby('Year').Price.mean().plot(kind='line', 
-                                    linewidth=2, 
-                                    title='Average Gas Price by Year')
+gas.groupby('Year').Price.mean().plot( kind='line', 
+                                        color='b',
+                                        linewidth=2, 
+                                        title='Average Gas Price by Year')
 plt.xlabel('Year')
 plt.ylabel('Average gas price')
+
+# See if there are seasonal differences in gas prices (Unlikely)
+gas.groupby(['Quarter','Year']).Price.mean().unstack(0).plot( kind = 'bar',
+                                                                figsize=(7,9),
+                                                                title='Daily Ridership in May 2010')
+plt.xlabel('Year')
+plt.ylabel('Dollars per Gallon')
+plt.legend().set_visible(False) # Hides legend
+#--> As suspected, no seasonal differences in gas prices that occur annually
+
 
