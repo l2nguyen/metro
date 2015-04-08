@@ -17,5 +17,5 @@ Initial class presentation
 * Weather data from [NOAA](http://www.ncdc.noaa.gov/cdo-web/datatools)
 (Note: I used data from the National Arboretum station)
 
-** Wish List:**
+**Wish List:**
 * Make interactive data visualizations using javascript/d3. Maybe something like [this](http://mbtaviz.github.io/)
