@@ -2,7 +2,7 @@
 # METRO RIDERSHIP ANALYSIS
 #
 # NOTE: Project for GA Data Science class.
-# I'm interested in looking at the factors that affecst
+# I'm interested in looking at the factors that affect
 # Metro rail ridership and modeling their relationships
 #===========================================================#
 # CREATED BY: Lena Nguyen - March 15, 2015
@@ -21,12 +21,8 @@ import matplotlib.pylab as plt
 # Source: http://www.opendatadc.org/dataset/wmata-metrorail-ridership-by-date
 metro = '../Data/metro.csv'
 
-# Data of annual ridership by station (Originally PDF format)
-# Source:
-# http://www.wmata.com/pdfs/planning/2014%2010%20Year%20Historical%20Rail%20Ridership.pdf
-metro2 = '../Data/2014 10 Year Historical Rail Ridership.csv'
-
 # Data of rail ridership from May 2013
+# This data will be mainly used to see how people are moving throught the Metrorail system
 # Source: http://planitmetro.com/2014/08/28/data-download-may-2013-2014-metrorail-ridership-by-origin-and-destination/
 may = '../Data/Metro_May_2013_Data.csv'
 
@@ -34,52 +30,29 @@ may = '../Data/Metro_May_2013_Data.csv'
 # Source URL: http://www.eia.gov/dnav/pet/pet_pri_gnd_dcus_r1z_m.htm
 gas = '../Data/Gas Prices.csv'
 
-#=============#
-# IMPORT DATA #
-#=============#
+# Monthly Unemployment data for the DC metro area, not adjusted for seasonality
+# Source: http://www.bls.gov/eag/eag.dc_washington_md.htm
+labor = '../Data/Unemployment.csv'
+
+#=======================================================#
+# METRO DATA 
+#=======================================================#
+
+#===========#
+# READ DATA #
+#===========#
 
 # OPEN DATA DC METRO RIDERSHIP DATA
-metro = pd.read_csv(metro2)
+metro = pd.read_csv(metro)
 
-# MAY 2013 RIDERSHIP DATA
-may13 = pd.read_csv(may, header=True, names=['Holiday', 'Day', 'Entrance', 'Exit', 'Period', 'Riders'])
-
-# MAY 2013 RIDERSHIP DATA
-may13.head(10)
-may13.describe()
-may13.dtypes
-
-# Transform Riders column from object to integer
-may13['Riders'] = may13['Riders'].map(lambda x: x.replace(',', ''))  # removes the , from the numbers
-may13['Riders'] = may13.Riders.astype('int')  # makes them all ints
-may13['Riders'].describe()
-
-# GAS PRICE DATA
-gas = pd.read_csv(gas)
-gas.columns = ['Date', 'Price']  # Rename columns
-
-#============#
-# QUICK LOOK #
-#============#
-
-## METRO DATA
+# QUICK LOOK
 metro.head(10)
 metro.describe()
 metro.dtypes
 
-## METRO MAY 2013 DATA
-may13.head(10)
-may13.describe()
-may13.dtypes
-
-## GAS DATA 
-gas.head(10)
-gas.describe
-gas.dtypes
-
-#============================#
-# CLEAN/TRANSFORM METRO DATA #
-#============================#
+#======================#
+# CLEAN/TRANSFORM DATA #
+#======================#
 
 # TRANSFORM DATES
 
@@ -107,35 +80,9 @@ metro['Weekday'] = metro.Weekday.map({  0:'Mon', 1:'Tue', 2:'Wed',
                                         3:'Thu', 4:'Fri', 5:'Sat',
                                         6:'Sun'})
 
-# Round price column to 2 decimal places to look like dollar prices
-gas['Price'] = np.round(gas['Price'], decimals=2)
-
-gas['Date'] = pd.to_datetime(gas.Date, format='%m/%d/%Y')
-gas.dtypes
-gas.set_index('Date', inplace=True)
-
-# Year
-gas['Year'] = gas.index.year
-# Month
-gas['Month'] = gas.index.month
-gas['Month'] = gas.Month.astype('int')
-# Quarterly assignment
-gas['Quarter'] = [((x-1)//3)+1 for x in gas['Month']]
-
-# Check for missing data in variables
-metro.isnull().sum()
-# No missing data
-
-gas.isnull().sum()
-# No missing data
-
-#==================#
-# DATA INSPECTION  #
-#==================#
-
-#=============#
-# METRO DATA  #
-#=============#
+#============#
+# GRAPH DATA #
+#============#
 
 # General trend of ridership over the years
 metro.groupby('Year').Total.mean().plot(kind='line',
@@ -198,24 +145,54 @@ plt.legend().set_visible(False)  # Hides legend
 plt.savefig('Ridership for July 2010.png')
 
 
-
-
 # Graph weekend and weekday ridership on the same line
-weekday.groupby(['Month']).Total.mean().plot(kind='line',
+weekday.groupby('Month').Total.mean().plot(kind='line',
                                             color='b',
                                             linewidth=2)
-weekend.groupby(['Month']).Total.mean().plot(kind='line',
+weekend.groupby('Month').Total.mean().plot(kind='line',
                                             color='r',
                                             linewidth=2)
 plt.xlabel('Month')
 plt.ylabel('Average Number of Riders')
 plt.title('Weekend and Weekday Ridership by Month')
-plt.savefig('Weekend and Weekday Riderhsip by Month.png')
 plt.axis([1, 12, 100000, 800000])
+plt.savefig('Weekday vs weekend Ridership.png')
 
-#=========================#
-# MAY 2013 RIDERSHIP DATA #
-#=========================#
+############################################
+
+#=============================#
+# MAY 2013 ENTRANCE/EXIT DATA #
+#=============================#
+# NOTE: This dataset will help us see how people are moving throughout 
+# the metrorail system in different times of days
+# For example, is everyone coming from the MD/VA suburbs in the morning to DC?
+# Not very important for the regression but interesting data
+
+# NOTE: Late night data only for Saturday night (Labeled as Sunday).
+# The number of riders seem too small from personal experience
+# Ignore late night data completely 
+
+# MAY 2013 RIDERSHIP DATA
+may13 = pd.read_csv(may, header=True, 
+                    names=['Holiday', 'Day', 'Entrance', 'Exit', 'Period', 'Riders'])
+
+# QUICK LOOK
+may13.head(10)
+may13.describe()
+may13.dtypes
+
+#======================#
+# CLEAN/TRANSFORM DATA #
+#======================#
+
+# Transform Riders column from object to integer
+may13['Riders'] = may13['Riders'].map(lambda x: x.replace(',', ''))  # removes the , from the numbers
+may13['Riders'] = may13.Riders.astype('int')  # makes them all ints
+may13['Riders'].describe()
+
+#============#
+# GRAPH DATA #
+#============#
 
 may13.groupby(['Period']).Riders.sum().plot( kind='line',
                                             color='r',
@@ -223,9 +200,7 @@ may13.groupby(['Period']).Riders.sum().plot( kind='line',
                                             title='Total Daily Ridership in May 2013')
 plt.legend().set_visible(False)  # Hides legend
 
-# NOTE: Late night data only for Saturday night (Labeled as Sunday).
-# The number of riders seem too small from personal experience
-
+# AM PEAK
 ampeak=may13[may13.Period.isin(['AM Peak'])]  # Make a data frame with the AM Peak obs
 
 # Make a stacked bar graph with the number of riders by Entrance and Exit Stations
@@ -234,16 +209,58 @@ ampeak.groupby(['Entrance']).Riders.sum().plot(kind='bar', color='r')
 plt.title('Number of Riders Entering/Exiting at Station during AM Peak in May 2013')
 plt.legend()
 
-pmpeak=may13[may13.Period.isin(['PM Peak'])]  # Make a data frame with the AM Peak obs
+# PM PEAK
+pmpeak=may13[may13.Period.isin(['PM Peak'])]  # Make a data frame with the PM Peak obs
 # Make a stacked bar graph with the number of riders by Entrance and Exit Stations
+
 pmpeak.groupby(['Exit']).Riders.sum().plot(kind='bar', color='m', label='Exit')
 pmpeak.groupby(['Entrance']).Riders.sum().plot(kind='bar', color='g', label='Entrance')
 plt.title('Number of Riders Entering/Exiting at Station during PM Peak in May 2013')
 plt.legend()
 
-#================#
-# GAS PRICE DATA #
-#================#
+############################################
+
+#=======================================================#
+# GAS PRICE DATA 
+#=======================================================#
+
+#===========#
+# READ DATA #
+#===========#
+
+gas = pd.read_csv(gas)
+gas.columns = ['Date', 'Price']  # Rename columns
+
+# QUICK LOOK
+gas.head(10)
+gas.describe
+gas.dtypes
+
+#======================#
+# CLEAN/TRANSFORM DATA #
+#======================#
+
+# Round price column to 2 decimal places to look like dollar prices
+gas['Price'] = np.round(gas['Price'], decimals=2)
+
+gas['Date'] = pd.to_datetime(gas.Date, format='%m/%d/%Y')
+gas.dtypes
+gas.set_index('Date', inplace=True)
+
+# Year
+gas['Year'] = gas.index.year
+# Month
+gas['Month'] = gas.index.month
+gas['Month'] = gas.Month.astype('int')
+# Quarterly assignment
+gas['Quarter'] = [((x-1)//3)+1 for x in gas['Month']]
+
+gas.isnull().sum()
+# No missing data
+
+#============#
+# GRAPH DATA #
+#============#
 
 # General trend of gas price over the years (1993-2015)
 gas.groupby('Year').Price.mean().plot( kind='line',
@@ -251,17 +268,80 @@ gas.groupby('Year').Price.mean().plot( kind='line',
                                         linewidth=2,
                                         title='Average Gas Price by Year')
 plt.xlabel('Year')
-plt.ylabel('Average gas price by Year')
-plt.axis([2004, 2014, 0.50, 4.00])
+plt.ylabel('Average gas price (USD/Gallon)')
+plt.axis([1993, 2014, 0.50, 4.00])
 plt.savefig('Average Gas Price by Year.png')
-
+## Graph shows continuous price increase since 1993, a short slight dip around 2009,
+## Gas prices have been going down since Fall 2014
 
 # See if there are seasonal differences in gas prices (Unlikely)
 gas.groupby(['Quarter', 'Year']).Price.mean().unstack(0).plot(kind='bar',
                                                             figsize=(7,9),
-                                                            title='Daily Ridership in May 2010')
+                                                            title='Average Gas Price by Quarter')
 
 plt.xlabel('Year')
-plt.ylabel('Dollars per Gallon')
+plt.ylabel('Average Gas Price (USD/Gallon)')
 plt.legend().set_visible(False)  # Hides legend
-# As suspected, no seasonal differences in gas prices that occur annually
+## As suspected, no seasonal differences in gas prices that occur annually
+
+#============#
+# MERGE DATA #
+#============#
+
+del gas['Quarter']  # delete quarter variable before merge
+data = pd.merge(metro, gas, on=['Year', 'Month'])  # Merge in gas data
+
+####################################
+
+#=======================================================#
+# UNEMPLOYMENT DATA 
+#=======================================================#
+
+#===========#
+# READ DATA #
+#===========#
+labor = pd.read_csv(labor)
+
+# QUICK LOOK
+labor.dtypes
+labor.head(10)
+labor.describe()
+
+#======================#
+# CLEAN/TRANSFORM DATA #
+#======================#
+
+# Change month abbreviation into integer
+monthDict = {'Jan':1, 'Feb':2, 'Mar':3, 
+             'Apr':4, 'May':5, 'Jun':6, 
+             'Jul':7, 'Aug':8, 'Sep':9, 
+             'Oct':10, 'Nov':11, 'Dec':12}
+
+labor['Month'] = labor.Month.map(monthDict)
+
+# Check it worked
+labor.head(10)
+labor.dtypes
+
+#============#
+# GRAPH DATA #
+#============#
+
+# General trend of unemployment rate over the years (2000-2015)
+labor.groupby('Year').Unemp_Rate.mean().plot( kind='line',
+                                                color='b',
+                                                linewidth=2,
+                                                title='Average Unemployment Rate by Year')
+plt.xlabel('Year')
+plt.ylabel('Average Unemployment Rate')
+plt.savefig('Average Unemployment Rate by Year.png')
+## This smooths out the seasonal effects. Unemployment rate doubled in 2008.
+## This was due to the financial crisis in 2008 due to the housing bubble bursting
+
+#============#
+# MERGE DATA #
+#============#
+
+data = pd.merge(data, labor, on=['Year', 'Month'])  # Merge in unemployment data
+
+
