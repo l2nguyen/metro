@@ -12,6 +12,10 @@ import pandas as pd
 import numpy as np
 import matplotlib.pylab as plt
 
+#=======================================================#
+# METRO DATA 
+#=======================================================#
+
 #============#
 # DATA FILES #
 #============#
@@ -25,18 +29,6 @@ metro = '../Data/metro.csv'
 # This data will be mainly used to see how people are moving throught the Metrorail system
 # Source: http://planitmetro.com/2014/08/28/data-download-may-2013-2014-metrorail-ridership-by-origin-and-destination/
 may = '../Data/Metro_May_2013_Data.csv'
-
-# Monthly data of gas prices in Lower Atlantic Region from EIA
-# Source URL: http://www.eia.gov/dnav/pet/pet_pri_gnd_dcus_r1z_m.htm
-gas = '../Data/Gas Prices.csv'
-
-# Monthly Unemployment data for the DC metro area, not adjusted for seasonality
-# Source: http://www.bls.gov/eag/eag.dc_washington_md.htm
-labor = '../Data/Unemployment.csv'
-
-#=======================================================#
-# METRO DATA 
-#=======================================================#
 
 #===========#
 # READ DATA #
@@ -218,23 +210,148 @@ pmpeak.groupby(['Entrance']).Riders.sum().plot(kind='bar', color='g', label='Ent
 plt.title('Number of Riders Entering/Exiting at Station during PM Peak in May 2013')
 plt.legend()
 
-############################################
+#########################################################################
+
+#=======================================================#
+# WEATHER DATA 
+#=======================================================#
+
+# Daily weather data
+# Source: NOAA, Washington Reagan National Airport Weather Station
+weather = '../Data/Weather - Daily.csv'
+
+# IMPORTANT: Variables are all measured in METRIC units. 
+# PRCP/SNOW is measured in millimiters .
+# TMAX/TMIN are in tenths of degrees celsius
+
+#===========#
+# READ DATA #
+#===========#
+
+weather = pd.read_csv(weather)
+
+# QUICK LOOK
+weather.columns.values
+weather.head(10)
+weather.dtypes
+weather.describe()
+# Note: 411 degrees Celsius (~771 deg F/hotter than hell) seems a bit high to be a max temp.
+# TMAX and TMIN variable have to be divided by 10 to get degrees Celsius
+# That must be what tenths of degrees celsius in documentation means
+
+#======================#
+# CLEAN/TRANSFORM DATA #
+#======================#
+# Note: WT columns are all -9999 so I'm going to remove them
+# Will remove snow depth (SNWD) column and keep snowfall column for snow related data
+# Will remove station code and name because there is only one station in the data
+
+# REMOVE UNNECESSARY COLUMNS
+weather.drop(weather.columns[:2], axis=1, inplace=True)  # Removes Station/Station Name columns
+weather.drop(weather.columns[6:], axis=1, inplace=True)  # Removes WT columns
+weather.drop(['SNWD'], axis=1, inplace=True)  # Removes snow depth column
+
+weather.head(10)  # Check column deletions worked
+weather.describe()
+
+# No missing data but it seems that missing data is marked with "-9999" value
+# Will transform those to NaN values
+cols = ['PRCP', 'SNOW', 'TMAX', 'TMIN']
+for col in cols:
+    weather[col][weather[col]==-9999] = np.nan
+
+weather.isnull().sum()  # check number of missing values
+
+# Separate date into year, month, day
+weather['DATE'] = pd.to_datetime(weather.DATE, format='%Y%m%d')
+weather.set_index('DATE', inplace=True)
+
+# Year
+weather['Year'] = weather.index.year
+# Month
+weather['Month'] = weather.index.month
+# Day
+weather['Day'] = weather.index.day
+
+# Drop date column
+weather.reset_index(drop=True)
+
+# Convert from tenths of degrees Celsius to Fahrenheit for easier understanding
+weather['TMAX'] = weather['TMAX'].map(lambda x:((float(9)/5)*(x/10) + 32))  # Highest temp
+weather['TMIN'] = weather['TMIN'].map(lambda x:((float(9)/5)*(x/10) + 32))  # Lowest temp
+
+# Convert from mm to inches
+weather['PRCP'] = weather['PRCP'].map(lambda x:(x/25.4))  # Precipitation
+weather['SNOW'] = weather['SNOW'].map(lambda x:(x/25.4))  # Snowfall
+
+weather.describe()
+# Those max/min temps look much more reasonable
+
+#============#
+# GRAPH DATA #
+#============#
+
+# Look at data numerically
+weather.groupby('Year')['PRCP','SNOW','TMAX','TMIN'].mean()  # Average by year
+weather.groupby('Year')['PRCP','SNOW','TMAX','TMIN'].max()  # Average by year
+
+# Look at data numerically
+weather.groupby('Month')['PRCP','SNOW','TMAX','TMIN'].mean()  # Average by month
+weather.groupby('Month')['PRCP','SNOW','TMAX','TMIN'].max()  # Average by year
+
+# Average rain fail by month
+weather.groupby('Month').PRCP.mean().plot(kind='bar',color='g')
+plt.xlabel('Month')
+plt.ylabel('Average Precipitation Amount (Inches)')
+
+# Average low/high temperature by month
+weather.groupby('Month').TMAX.mean().plot(kind='line', color='b', label='Max Temp')
+weather.groupby('Month').TMIN.mean().plot(kind='line', color='r', label='Min Temp')
+plt.xlabel('Month')
+plt.ylabel('Average Temperature (Deg F)')
+plt.axis([1, 12, 0, 100])
+plt.legend()
+
+# Record max/min temp from 2004-2014 by month
+weather.groupby('Month').TMAX.max().plot(kind='line', color='b', label='Max Temp')
+weather.groupby('Month').TMIN.min().plot(kind='line', color='r', label='Min Temp')
+plt.xlabel('Month')
+plt.ylabel('Temperature (Deg F)')
+plt.axis([1, 12, 0, 120])
+plt.legend()
+
+#============#
+# MERGE DATA #
+#============#
+data = pd.merge(metro, weather, on=['Year', 'Month', 'Day'])  # Merge metro/weather data
+
+data.columns.values
+data.head(10)
+
+##########################################################################
 
 #=======================================================#
 # GAS PRICE DATA 
 #=======================================================#
+
+# Monthly data of gas prices in Lower Atlantic Region from EIA
+# Source URL: http://www.eia.gov/dnav/pet/pet_pri_gnd_dcus_r1z_m.htm
+gas = '../Data/Gas Prices.csv'
 
 #===========#
 # READ DATA #
 #===========#
 
 gas = pd.read_csv(gas)
-gas.columns = ['Date', 'Price']  # Rename columns
+gas.columns = ['Date', 'Gas_Price']  # Rename columns
 
 # QUICK LOOK
 gas.head(10)
 gas.describe
 gas.dtypes
+
+gas.isnull().sum()
+# No missing data
 
 #======================#
 # CLEAN/TRANSFORM DATA #
@@ -243,20 +360,18 @@ gas.dtypes
 # Round price column to 2 decimal places to look like dollar prices
 gas['Price'] = np.round(gas['Price'], decimals=2)
 
+# Change date into month/year column
 gas['Date'] = pd.to_datetime(gas.Date, format='%m/%d/%Y')
 gas.dtypes
 gas.set_index('Date', inplace=True)
 
 # Year
 gas['Year'] = gas.index.year
+
 # Month
 gas['Month'] = gas.index.month
-gas['Month'] = gas.Month.astype('int')
 # Quarterly assignment
 gas['Quarter'] = [((x-1)//3)+1 for x in gas['Month']]
-
-gas.isnull().sum()
-# No missing data
 
 #============#
 # GRAPH DATA #
@@ -289,13 +404,20 @@ plt.legend().set_visible(False)  # Hides legend
 #============#
 
 del gas['Quarter']  # delete quarter variable before merge
-data = pd.merge(metro, gas, on=['Year', 'Month'])  # Merge in gas data
+data = pd.merge(data, gas, on=['Year', 'Month'])  # Merge in gas data
 
-####################################
+data.columns.values
+data.head(10)
+
+##########################################################################
 
 #=======================================================#
 # UNEMPLOYMENT DATA 
 #=======================================================#
+
+# Monthly Unemployment data for the DC metro area, not adjusted for seasonality
+# Source: http://www.bls.gov/eag/eag.dc_washington_md.htm
+labor = '../Data/Unemployment.csv'
 
 #===========#
 # READ DATA #
@@ -311,13 +433,13 @@ labor.describe()
 # CLEAN/TRANSFORM DATA #
 #======================#
 
-# Change month abbreviation into integer
+# Change month abbreviation to integers for easier merge
 monthDict = {'Jan':1, 'Feb':2, 'Mar':3, 
              'Apr':4, 'May':5, 'Jun':6, 
              'Jul':7, 'Aug':8, 'Sep':9, 
              'Oct':10, 'Nov':11, 'Dec':12}
 
-labor['Month'] = labor.Month.map(monthDict)
+labor['Month'] = labor.Month.map(monthDict)  
 
 # Check it worked
 labor.head(10)
@@ -341,7 +463,9 @@ plt.savefig('Average Unemployment Rate by Year.png')
 #============#
 # MERGE DATA #
 #============#
-
 data = pd.merge(data, labor, on=['Year', 'Month'])  # Merge in unemployment data
+
+data.columns.values
+data.head(10)
 
 
