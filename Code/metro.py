@@ -11,6 +11,10 @@
 import pandas as pd
 import numpy as np
 import matplotlib.pylab as plt
+from sklearn.cross_validation import train_test_split
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import mean_squared_error
+from sklearn.cross_validation import cross_val_score
 
 #=======================================================#
 # METRO DATA 
@@ -23,6 +27,7 @@ import matplotlib.pylab as plt
 # Data of daily ridership of metro rail from Open Data DC
 # Note: Not disaggregated by station
 # Source: http://www.opendatadc.org/dataset/wmata-metrorail-ridership-by-date
+# Data scraped from visualization: http://planitmetro.com/ridership_cal/
 metro = '../Data/metro.csv'
 
 # Data of rail ridership from May 2013
@@ -35,7 +40,7 @@ may = '../Data/Metro_May_2013_Data.csv'
 #===========#
 
 # OPEN DATA DC METRO RIDERSHIP DATA
-metro = pd.read_csv(metro)
+metro = pd.read_csv(metro, header=True, names=['Date','Riders'])
 
 # QUICK LOOK
 metro.head(10)
@@ -45,6 +50,14 @@ metro.dtypes
 #======================#
 # CLEAN/TRANSFORM DATA #
 #======================#
+
+# CLEAN DATA
+metro[metro['Riders']==0]
+#-- One value of 0 for October 29, 2012. Is this correct?
+#-- Google of the date shows that the value is correct
+#-- Whole metrorail system was shut down due to Hurricane Sandy on that day
+#-- https://www.wmata.com/about_metro/news/PressReleaseDetail.cfm?ReleaseID=5362
+#-- http://www.wmata.com/about_metro/news/PressReleaseDetail.cfm?ReleaseID=5363
 
 # TRANSFORM DATES
 
@@ -71,7 +84,7 @@ weekday = metro[~(metro.Weekday.isin([5, 6]))]
 metro['Weekday'] = metro.Weekday.map({  0:'Mon', 1:'Tue', 2:'Wed',
                                         3:'Thu', 4:'Fri', 5:'Sat',
                                         6:'Sun'})
-
+                                        
 #============#
 # GRAPH DATA #
 #============#
@@ -150,19 +163,19 @@ plt.title('Weekend and Weekday Ridership by Month')
 plt.axis([1, 12, 100000, 800000])
 plt.savefig('Weekday vs weekend Ridership.png')
 
-############################################
+#########################################################################
 
 #=============================#
 # MAY 2013 ENTRANCE/EXIT DATA #
 #=============================#
-# NOTE: This dataset will help us see how people are moving throughout 
-# the metrorail system in different times of days
-# For example, is everyone coming from the MD/VA suburbs in the morning to DC?
-# Not very important for the regression but interesting data
+#-- NOTE: This dataset will help us see how people are moving throughout 
+#-- the metrorail system in different times of days
+#-- For example, is everyone coming from the MD/VA suburbs in the morning to DC?
+#-- Not very important for the regression but interesting data
 
-# NOTE: Late night data only for Saturday night (Labeled as Sunday).
-# The number of riders seem too small from personal experience
-# Ignore late night data completely 
+#-- NOTE: Late night data only for Saturday night (Labeled as Sunday).
+#-- The number of riders seem too small from personal experience
+#-- I plan to ignore late night data completely. Does not seem reliable.
 
 # MAY 2013 RIDERSHIP DATA
 may13 = pd.read_csv(may, header=True, 
@@ -235,34 +248,51 @@ weather.columns.values
 weather.head(10)
 weather.dtypes
 weather.describe()
-# Note: 411 degrees Celsius (~771 deg F/hotter than hell) seems a bit high to be a max temp.
-# TMAX and TMIN variable have to be divided by 10 to get degrees Celsius
-# That must be what tenths of degrees celsius in documentation means
+#-- 411 degrees Celsius (~771 deg F/hotter than hell) seems a bit high to be a max temp.
+#-- TMAX and TMIN variable have to be divided by 10 to get degrees Celsius
+#-- That must be what tenths of degrees celsius in documentation means
 
 #======================#
 # CLEAN/TRANSFORM DATA #
 #======================#
-# Note: WT columns are all -9999 so I'm going to remove them
-# Will remove snow depth (SNWD) column and keep snowfall column for snow related data
-# Will remove station code and name because there is only one station in the data
-
-# REMOVE UNNECESSARY COLUMNS
-weather.drop(weather.columns[:2], axis=1, inplace=True)  # Removes Station/Station Name columns
-weather.drop(weather.columns[6:], axis=1, inplace=True)  # Removes WT columns
-weather.drop(['SNWD'], axis=1, inplace=True)  # Removes snow depth column
-
-weather.head(10)  # Check column deletions worked
-weather.describe()
-
-# No missing data but it seems that missing data is marked with "-9999" value
-# Will transform those to NaN values
-cols = ['PRCP', 'SNOW', 'TMAX', 'TMIN']
+# Documentation says that "-9999" means it's a missing value
+# Will transform those to NaN values to see how many missing values there actually are
+cols = list(weather.columns.values)
 for col in cols:
     weather[col][weather[col]==-9999] = np.nan
 
 weather.isnull().sum()  # check number of missing values
+#-- WT columns have a 1 for a day when a certain weather type occurs
+#-- Most weather don't occur that often
+#-- Surprisingly, snow (WT18) occurs only 264 days from 2004-2014. Hail (WT05) occurs more often at 364 days
+#-- Most common are Fog (WT01), Rain (WT16), Mist (WT13), Haze (WT08) 
 
-# Separate date into year, month, day
+#-- Will drop some (maybe all?) WT columns
+#-- For now, keep Hail (WT05), Rain (WT16), Snow (WT18), Thunder (WT03)
+
+# REMOVE SOME COLUMNS
+weather.drop(weather.columns[:2], axis=1, inplace=True)  # Removes Station/Station Name columns
+weather.drop(weather.columns[6:14], axis=1, inplace=True)  # Removes WT columns
+
+weather.columns.values  # assess the damage
+
+weather.drop(weather.columns[7:12], axis=1, inplace=True)  # Removes more WT columns
+weather.columns.values  # assess the damage
+weather.drop(weather.columns[-2:], axis=1, inplace=True)  # Remove more WT columns
+del weather['WT08']  # Last manual removal
+
+weather.columns.values  # assess the damage
+
+# CHANGE MISSING VALUES TO 0
+# This will make the WT variables binary variables
+cols = list(weather.columns.values)
+for col in cols:
+    weather[col][np.isnan(weather[col])] = 0
+    
+weather.isnull().sum()  # No missing values
+weather.describe()
+
+# SEPARATE DATE INTO YEAR, MONTH, DAY
 weather['DATE'] = pd.to_datetime(weather.DATE, format='%Y%m%d')
 weather.set_index('DATE', inplace=True)
 
@@ -281,7 +311,8 @@ weather['TMAX'] = weather['TMAX'].map(lambda x:((float(9)/5)*(x/10) + 32))  # Hi
 weather['TMIN'] = weather['TMIN'].map(lambda x:((float(9)/5)*(x/10) + 32))  # Lowest temp
 
 # Convert from mm to inches
-weather['PRCP'] = weather['PRCP'].map(lambda x:(x/25.4))  # Precipitation
+weather['PRCP'] = weather['PRCP'].map(lambda x:(x/float(254)))  # Precipitation
+weather['SNWD'] = weather['SNWD'].map(lambda x:(x/25.4))  # Snow Depth
 weather['SNOW'] = weather['SNOW'].map(lambda x:(x/25.4))  # Snowfall
 
 weather.describe()
@@ -292,17 +323,26 @@ weather.describe()
 #============#
 
 # Look at data numerically
-weather.groupby('Year')['PRCP','SNOW','TMAX','TMIN'].mean()  # Average by year
-weather.groupby('Year')['PRCP','SNOW','TMAX','TMIN'].max()  # Average by year
+weather.groupby('Year')['PRCP','SNWD', 'SNOW','TMAX','TMIN'].mean()  # Average by year
+weather.groupby('Year')['PRCP','SNWD', 'SNOW','TMAX','TMIN'].max()  # Average by year
 
 # Look at data numerically
-weather.groupby('Month')['PRCP','SNOW','TMAX','TMIN'].mean()  # Average by month
-weather.groupby('Month')['PRCP','SNOW','TMAX','TMIN'].max()  # Average by year
+weather.groupby('Month')['PRCP','SNWD', 'SNOW','TMAX','TMIN'].mean()  # Average by month
+weather.groupby('Month')['PRCP','SNWD', 'SNOW','TMAX','TMIN'].max()  # Average by year
 
-# Average rain fail by month
-weather.groupby('Month').PRCP.mean().plot(kind='bar',color='g')
+# Scatter matrix (to help check for collinearity)
+pd.scatter_matrix(weather[['PRCP','SNWD', 'SNOW']])
+
+# Total rain fail by month
+weather.groupby('Month').PRCP.sum().plot(kind='bar',color='g')
 plt.xlabel('Month')
-plt.ylabel('Average Precipitation Amount (Inches)')
+plt.ylabel('Total Precipitation Amount (Inches)')
+plt.title('Total Precipitation by Month')
+
+weather.groupby('Month').SNWD.mean().plot(kind='bar',color='g')
+plt.xlabel('Month')
+plt.ylabel('Total Precipitation Amount (Inches)')
+plt.title('Total Precipitation by Month')
 
 # Average low/high temperature by month
 weather.groupby('Month').TMAX.mean().plot(kind='line', color='b', label='Max Temp')
@@ -358,7 +398,7 @@ gas.isnull().sum()
 #======================#
 
 # Round price column to 2 decimal places to look like dollar prices
-gas['Price'] = np.round(gas['Price'], decimals=2)
+gas['Gas_Price'] = np.round(gas['Gas_Price'], decimals=2)
 
 # Change date into month/year column
 gas['Date'] = pd.to_datetime(gas.Date, format='%m/%d/%Y')
@@ -378,7 +418,7 @@ gas['Quarter'] = [((x-1)//3)+1 for x in gas['Month']]
 #============#
 
 # General trend of gas price over the years (1993-2015)
-gas.groupby('Year').Price.mean().plot( kind='line',
+gas.groupby('Year').Gas_Price.mean().plot( kind='line',
                                         color='b',
                                         linewidth=2,
                                         title='Average Gas Price by Year')
@@ -386,11 +426,11 @@ plt.xlabel('Year')
 plt.ylabel('Average gas price (USD/Gallon)')
 plt.axis([1993, 2014, 0.50, 4.00])
 plt.savefig('Average Gas Price by Year.png')
-## Graph shows continuous price increase since 1993, a short slight dip around 2009,
-## Gas prices have been going down since Fall 2014
+#-- Graph shows continuous price increase since 1993, a short slight dip around 2009,
+#-- Gas prices have been going down since Fall 2014
 
 # See if there are seasonal differences in gas prices (Unlikely)
-gas.groupby(['Quarter', 'Year']).Price.mean().unstack(0).plot(kind='bar',
+gas.groupby(['Quarter', 'Year']).Gas_Price.mean().unstack(0).plot(kind='bar',
                                                             figsize=(7,9),
                                                             title='Average Gas Price by Quarter')
 
@@ -457,8 +497,8 @@ labor.groupby('Year').Unemp_Rate.mean().plot( kind='line',
 plt.xlabel('Year')
 plt.ylabel('Average Unemployment Rate')
 plt.savefig('Average Unemployment Rate by Year.png')
-## This smooths out the seasonal effects. Unemployment rate doubled in 2008.
-## This was due to the financial crisis in 2008 due to the housing bubble bursting
+#-- This smooths out the seasonal effects. Unemployment rate doubled in 2008.
+#-- This was due to the financial crisis in 2008 due to the housing bubble bursting
 
 #============#
 # MERGE DATA #
@@ -467,5 +507,90 @@ data = pd.merge(data, labor, on=['Year', 'Month'])  # Merge in unemployment data
 
 data.columns.values
 data.head(10)
+
+#=======================================================#
+# LINEAR REGRESSION MODEL (MODEL #1)
+#=======================================================#
+# Split data into weekday and weekends (Temporary)
+# ! Might try standardizing the data based on number of cars later
+weekday = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri']
+
+wkday = data[data.Weekday.isin(weekday)]
+wkend = data[~(data.Weekday.isin(weekday))]
+
+#-- 1. Run very simple model for weekday ridership with precipitation/snowfall variables
+#-- FEATURES: Precipitation, Snow depths, Snow fall amount
+
+# Plot the Precipitation against daily Ridership
+plt.figure(figsize=(10,9))
+plt.subplot(131)
+plt.scatter(wkday.PRCP, wkday.Riders, color='b', alpha=0.8)  # Plot the raw data
+plt.xlabel("Precipitation (inches)")
+plt.ylabel("Ridership")
+
+# Plot the Snow Depths against daily Ridership
+plt.subplot(132)
+plt.scatter(wkday.SNWD, wkday.Riders, color='g', alpha=0.8)  # Plot the raw data
+plt.xlabel("Snow Depths (inches)")
+
+# Plot the Snowfall against daily Ridership
+plt.subplot(133)
+plt.scatter(wkday.SNOW, wkday.Riders, color='r', alpha=0.8)  # Plot the raw data
+plt.xlabel("Snowfall (inches)")
+
+
+feats = ['PRCP','SNWD','SNOW']
+
+X = wkday[feats]
+Y = wkday['Riders']
+
+# Split into train and test datasets
+# Test is 30% of complete dataset
+X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.3, random_state=1)
+
+# Convert test/train data to data fame
+X_train = pd.DataFrame(data=X_train, columns=feats)
+X_test = pd.DataFrame(data=X_test, columns=feats)
+Y_train = pd.DataFrame(data=Y_train, columns=['Riders'])
+Y_test = pd.DataFrame(data=Y_test, columns=['Riders'])
+
+# Simple Linear Regression model
+plm = LinearRegression()
+plm.fit(X_train, Y_train)
+
+plm.intercept_
+plm.coef_
+
+#============#
+# MODEL EVAL #
+#============#
+
+# Evaluate the fit of the model based off of the training set
+assert not np.any(np.isnan(X_test)|np.isinf(X_test))  # Just to be safe
+preds = plm.predict(X_test)
+np.sqrt(mean_squared_error(Y_test,preds))
+# That is a pretty bad mean square error even for the scale we are working with
+
+# Plot the residuals across the range of predicted values
+resid = preds - Y_test['Riders']
+plt.scatter(preds, resid, alpha=0.7)
+plt.xlabel("Predicted Ridership")
+plt.ylabel("Residuals")
+#-- It appears that this model predicts ridership to be about 700,000 for the
+#-- majority of cases. This is about the value of the intercept. 
+
+# Evaluate the model fit based off of cross validation
+scores = cross_val_score(plm, X, Y, cv=10, scoring='mean_squared_error')
+np.mean(np.sqrt(-scores))
+# RMSE is about equivalent to the standard deviation of weekday ridership
+
+#-- CONCLUSION: Not a very good model at all. Maybe because there is not much
+#-- variation in daily precipitation/snowfall. 
+
+#=======================================================#
+# LINEAR REGRESSION MODEL (MODEL #2)
+#=======================================================#
+
+
 
 
