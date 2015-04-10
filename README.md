@@ -15,7 +15,7 @@ This is the class project for my General Assembly Data Science project.
 * For a flavor of the project concept, see [Initial class presentation](Intial Project Presentation.pdf)
 * Data wrangling code can be found [here](Code/metro.py)
 * Graphs visualizing data can be found [here](Graphs)
-* Modelling code can be found [here]((Code/model.py)
+* Modelling code can be found [here](Code/model.py)
 * Documentation can be found [here](Documentation.docx)
 
 **Data Sources:**
@@ -29,6 +29,7 @@ This is the class project for my General Assembly Data Science project.
 
 **To Do List**
 * Transform the CaBi system to use as a proxy for tourism
+* Standardize the data by number of metro cars running in a day. Weekends will have fewer
 * More models with different features. Adding and dropping features
 * Refine model parameters
 
