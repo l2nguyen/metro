@@ -16,16 +16,7 @@ This is the class project for my General Assembly Data Science project.
 * Data wrangling code can be found [here](Code/metro.py)
 * Graphs visualizing data can be found [here](Graphs)
 * Modelling code can be found [here](Code/model.py)
-* Documentation can be found [here](Documentation.docx)
-
-**Data Sources:**
-* Metro Ridership Data from [Open Data DC](http://www.opendatadc.org/dataset/wmata-metrorail-ridership-by-date)
-* Gas price data from [US Energy Information Administration](http://www.eia.gov/dnav/pet/pet_pri_gnd_dcus_r1z_m.htm)
-* Unemployment data from [US Bureau of Labor Stats](http://www.bls.gov/eag/eag.dc_washington_md.htm)
-(Note: Data is for Washington DC Metro area which includes DC and other areas such as NoVA, Montgomery County, PG County, and parts of WV)
-* Weather data from [NOAA](http://www.ncdc.noaa.gov/cdo-web/datatools)
-(Note: I used data from the weather station at Reagan National Airport)
-* Capital Bikeshare (CaBi) data used as a proxy for tourism. Additionally, the increased use of bikeshare will mean fewer people will be taking the metro. CaBi trip history data found [here](https://www.capitalbikeshare.com/trip-history-data)
+* Documentation can be found [here](Documentation.pdf)
 
 **To Do List**
 * Transform the CaBi system to use as a proxy for tourism
@@ -35,3 +26,12 @@ This is the class project for my General Assembly Data Science project.
 
 **Wish List**
 * Make interactive data visualizations using javascript/d3. Maybe something like [this](http://mbtaviz.github.io/)
+
+**Data Sources:**
+* Metro Ridership Data from [Open Data DC](http://www.opendatadc.org/dataset/wmata-metrorail-ridership-by-date)
+* Gas price data from [US Energy Information Administration](http://www.eia.gov/dnav/pet/pet_pri_gnd_dcus_r1z_m.htm)
+* Unemployment data from [US Bureau of Labor Stats](http://www.bls.gov/eag/eag.dc_washington_md.htm)
+(Note: Data is for Washington DC Metro area which includes DC and other areas such as NoVA, Montgomery County, PG County, and parts of WV)
+* Weather data from [NOAA](http://www.ncdc.noaa.gov/cdo-web/datatools)
+(Note: I used data from the weather station at Reagan National Airport)
+* Capital Bikeshare (CaBi) data used as a proxy for tourism. Additionally, the increased use of bikeshare will mean fewer people will be taking the metro. CaBi trip history data found [here](https://www.capitalbikeshare.com/trip-history-data)
