@@ -1,5 +1,5 @@
 ## Study of Metro Ridership
-This is the class project for my General Assembly Data Science project.
+This is the class project for my General Assembly Data Science class.
 
 **Goals:** 
 * To visualize the DC Metro rail historical ridership data
@@ -12,7 +12,7 @@ This is the class project for my General Assembly Data Science project.
 * Will make models of increasing complexity and see what works best
 
 **Guide:**
-* For a flavor of the project concept, see [Initial class presentation](Intial Project Presentation.pdf)
+* For a flavor of the project concept, see [Initial class presentation](Initial Project Presentation.pdf)
 * Data wrangling code can be found [here](Code/metro.py)
 * Graphs visualizing data can be found [here](Graphs)
 * Modelling code can be found [here](Code/model.py)
