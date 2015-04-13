@@ -21,8 +21,9 @@ This is the class project for my General Assembly Data Science class.
 **To Do List**
 * Transform the CaBi system to use as a proxy for tourism
 * Standardize the data by number of metro cars running in a day. Weekends will have fewer
+* Try random forests with the data
 * More models with different features. Adding and dropping features
-* Refine model parameters
+* Parameter tuning
 
 **Wish List**
 * Make interactive data visualizations using javascript/d3. Maybe something like [this](http://mbtaviz.github.io/)
