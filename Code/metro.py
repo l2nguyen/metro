@@ -2,7 +2,7 @@
 # METRO RIDERSHIP ANALYSIS - DATA WRANGLING
 #
 # NOTE: Project for GA Data Science class.
-# In this file is, data wrangling, data visualization, 
+# In this file is, data wrangling, data visualization,
 # and generating the compiled dataset for analysis
 #===========================================================#
 # CREATED BY: Lena Nguyen - March 15, 2015
@@ -13,7 +13,7 @@ import numpy as np
 import matplotlib.pylab as plt
 
 #=======================================================#
-# METRO DATA 
+# METRO DATA
 #=======================================================#
 
 #============#
@@ -43,7 +43,7 @@ metro.dtypes
 #======================#
 
 # CLEAN DATA
-metro[metro['Riders']==0]
+metro[metro['Riders'] == 0]
 #-- One value of 0 for October 29, 2012. Is this correct?
 #-- Google of the date shows that the value is correct
 #-- Whole metrorail system was shut down due to Hurricane Sandy on that day
@@ -75,7 +75,7 @@ weekday = metro[~(metro.Weekday.isin([5, 6]))]
 metro['Weekday'] = metro.Weekday.map({  0:'Mon', 1:'Tue', 2:'Wed',
                                         3:'Thu', 4:'Fri', 5:'Sat',
                                         6:'Sun'})
-                                        
+
 #============#
 # GRAPH DATA #
 #============#
@@ -142,12 +142,8 @@ plt.savefig('Ridership for July 2010.png')
 
 
 # Graph weekend and weekday ridership on the same line
-weekday.groupby('Month').Total.mean().plot(kind='line',
-                                            color='b',
-                                            linewidth=2)
-weekend.groupby('Month').Total.mean().plot(kind='line',
-                                            color='r',
-                                            linewidth=2)
+weekday.groupby('Month').Total.mean().plot(kind='line', color='b', linewidth=2)
+weekend.groupby('Month').Total.mean().plot(kind='line', color='r', linewidth=2)
 plt.xlabel('Month')
 plt.ylabel('Average Number of Riders')
 plt.title('Weekend and Weekday Ridership by Month')
@@ -159,7 +155,7 @@ plt.savefig('Weekday vs weekend Ridership.png')
 #=============================#
 # MAY 2013 ENTRANCE/EXIT DATA #
 #=============================#
-#-- NOTE: This dataset will help us see how people are moving throughout 
+#-- NOTE: This dataset will help us see how people are moving throughout
 #-- the metrorail system in different times of days
 #-- For example, is everyone coming from the MD/VA suburbs in the morning to DC?
 #-- Not very important for the regression but interesting data
@@ -174,7 +170,7 @@ plt.savefig('Weekday vs weekend Ridership.png')
 may = '../Data/Metro_May_2013_Data.csv'
 
 # MAY 2013 RIDERSHIP DATA
-may13 = pd.read_csv(may, header=True, 
+may13 = pd.read_csv(may, header=True,
                     names=['Holiday', 'Day', 'Entrance', 'Exit', 'Period', 'Riders'])
 
 # QUICK LOOK
@@ -195,14 +191,12 @@ may13['Riders'].describe()
 # GRAPH DATA #
 #============#
 
-may13.groupby(['Period']).Riders.sum().plot( kind='line',
-                                            color='r',
-                                            figsize=(7,9),
-                                            title='Total Daily Ridership in May 2013')
+may13.groupby(['Period']).Riders.sum().plot(kind='line', color='r',figsize=(7,9))
+plt.title('Total Daily Ridership in May 2013')
 plt.legend().set_visible(False)  # Hides legend
 
 # AM PEAK
-ampeak=may13[may13.Period.isin(['AM Peak'])]  # Make a data frame with the AM Peak obs
+ampeak = may13[may13.Period.isin(['AM Peak'])]  # Make a data frame with the AM Peak obs
 
 # Make a stacked bar graph with the number of riders by Entrance and Exit Stations
 ampeak.groupby(['Exit']).Riders.sum().plot(kind='bar', color='b')
@@ -211,7 +205,7 @@ plt.title('Number of Riders Entering/Exiting at Station during AM Peak in May 20
 plt.legend()
 
 # PM PEAK
-pmpeak=may13[may13.Period.isin(['PM Peak'])]  # Make a data frame with the PM Peak obs
+pmpeak = may13[may13.Period.isin(['PM Peak'])]  # Make a data frame with the PM Peak obs
 # Make a stacked bar graph with the number of riders by Entrance and Exit Stations
 
 pmpeak.groupby(['Exit']).Riders.sum().plot(kind='bar', color='m', label='Exit')
@@ -222,14 +216,14 @@ plt.legend()
 #########################################################################
 
 #=======================================================#
-# WEATHER DATA 
+# WEATHER DATA
 #=======================================================#
 
 # Daily weather data
 # Source: NOAA, Washington Reagan National Airport Weather Station
 weather = '../Data/Weather - Daily.csv'
 
-# IMPORTANT: Variables are all measured in METRIC units. 
+# IMPORTANT: Variables are all measured in METRIC units.
 # PRCP/SNOW is measured in millimiters .
 # TMAX/TMIN are in tenths of degrees celsius
 
@@ -255,13 +249,13 @@ weather.describe()
 # Will transform those to NaN values to see how many missing values there actually are
 cols = list(weather.columns.values)
 for col in cols:
-    weather[col][weather[col]==-9999] = np.nan
+    weather[col][weather[col] == -9999] = np.nan
 
 weather.isnull().sum()  # check number of missing values
 #-- WT columns have a 1 for a day when a certain weather type occurs
 #-- Most weather don't occur that often
 #-- Surprisingly, snow (WT18) occurs only 264 days from 2004-2014. Hail (WT05) occurs more often at 364 days
-#-- Most common are Fog (WT01), Rain (WT16), Mist (WT13), Haze (WT08) 
+#-- Most common are Fog (WT01), Rain (WT16), Mist (WT13), Haze (WT08)
 
 #-- Will drop some (maybe all?) WT columns
 #-- For now, keep Hail (WT05), Rain (WT16), Snow (WT18), Thunder (WT03)
@@ -284,7 +278,7 @@ weather.columns.values  # assess the damage
 cols = list(weather.columns.values)
 for col in cols:
     weather[col][np.isnan(weather[col])] = 0
-    
+
 weather.isnull().sum()  # No missing values
 weather.describe()
 
@@ -359,6 +353,7 @@ plt.legend()
 #============#
 # MERGE DATA #
 #============#
+
 data = pd.merge(metro, weather, on=['Year', 'Month', 'Day'])  # Merge metro/weather data
 
 data.columns.values
@@ -367,7 +362,7 @@ data.head(10)
 ##########################################################################
 
 #=======================================================#
-# GAS PRICE DATA 
+# GAS PRICE DATA
 #=======================================================#
 
 # Monthly data of gas prices in Lower Atlantic Region from EIA
@@ -414,10 +409,8 @@ gas['Quarter'] = [((x-1)//3)+1 for x in gas['Month']]
 #============#
 
 # General trend of gas price over the years (1993-2015)
-gas.groupby('Year').Gas_Price.mean().plot( kind='line',
-                                        color='b',
-                                        linewidth=2,
-                                        title='Average Gas Price by Year')
+gas.groupby('Year').Gas_Price.mean().plot(kind='line', color='b', linewidth=2)
+plt.title('Average Gas Price by Year')
 plt.xlabel('Year')
 plt.ylabel('Average gas price (USD/Gallon)')
 plt.axis([1993, 2014, 0.50, 4.00])
@@ -426,10 +419,8 @@ plt.savefig('Average Gas Price by Year.png')
 #-- Gas prices have been going down since Fall 2014
 
 # See if there are seasonal differences in gas prices (Unlikely)
-gas.groupby(['Quarter', 'Year']).Gas_Price.mean().unstack(0).plot(kind='bar',
-                                                            figsize=(7,9),
-                                                            title='Average Gas Price by Quarter')
-
+gas.groupby(['Quarter', 'Year']).Gas_Price.mean().unstack(0).plot(kind='bar', figsize=(7,9))
+plt.title('Average Gas Price by Quarter')
 plt.xlabel('Year')
 plt.ylabel('Average Gas Price (USD/Gallon)')
 plt.legend().set_visible(False)  # Hides legend
@@ -448,7 +439,7 @@ data.head(10)
 ##########################################################################
 
 #=======================================================#
-# UNEMPLOYMENT DATA 
+# UNEMPLOYMENT DATA
 #=======================================================#
 
 # Monthly Unemployment data for the DC metro area, not adjusted for seasonality
@@ -458,6 +449,7 @@ labor = '../Data/Unemployment.csv'
 #===========#
 # READ DATA #
 #===========#
+
 labor = pd.read_csv(labor)
 
 # QUICK LOOK
@@ -470,12 +462,12 @@ labor.describe()
 #======================#
 
 # Change month abbreviation to integers for easier merge
-monthDict = {'Jan':1, 'Feb':2, 'Mar':3, 
-             'Apr':4, 'May':5, 'Jun':6, 
-             'Jul':7, 'Aug':8, 'Sep':9, 
+monthDict = {'Jan':1, 'Feb':2, 'Mar':3,
+             'Apr':4, 'May':5, 'Jun':6,
+             'Jul':7, 'Aug':8, 'Sep':9,
              'Oct':10, 'Nov':11, 'Dec':12}
 
-labor['Month'] = labor.Month.map(monthDict)  
+labor['Month'] = labor.Month.map(monthDict)
 
 # Check it worked
 labor.head(10)
@@ -486,10 +478,8 @@ labor.dtypes
 #============#
 
 # General trend of unemployment rate over the years (2000-2015)
-labor.groupby('Year').Unemp_Rate.mean().plot( kind='line',
-                                                color='b',
-                                                linewidth=2,
-                                                title='Average Unemployment Rate by Year')
+labor.groupby('Year').Unemp_Rate.mean().plot(kind='line', color='b', linewidth=2)
+plt.title('Average Unemployment Rate by Year')
 plt.xlabel('Year')
 plt.ylabel('Average Unemployment Rate')
 plt.savefig('Average Unemployment Rate by Year.png')
@@ -499,10 +489,37 @@ plt.savefig('Average Unemployment Rate by Year.png')
 #============#
 # MERGE DATA #
 #============#
+
 data = pd.merge(data, labor, on=['Year', 'Month'])  # Merge in unemployment data
 
 data.columns.values
 data.head(10)
+
+#=======================================================#
+# FEDERAL HOLIDAY DATA
+#=======================================================#
+
+#===========#
+# READ DATA #
+#===========#
+
+# Data with dates of federal holidays from 1997 - 2020
+# Source: http://catalog.data.gov/dataset/federal-holidays
+# Also added the government shut down days in October 2013 and snow days from OPM website
+holiday = pd.read_csv('/Users/Zelda/Data Science/GA/Project/Data/holidays.csv')
+
+holiday.head(10)  # quick look at data
+
+# Keep only days where federal government was closed for relevant years (2004-2014)
+holiday = holiday[(holiday['Year'] > 2003) & (holiday['Year'] < 2015)]
+holiday.head(10)  # check it worked
+
+#============#
+# MERGE DATA #
+#============#
+
+data = pd.merge(data, holiday, on=['Year', 'Month', 'Day'])  # Merge in unemployment data
+
 
 #=========================#
 # EXPORT COMPILED DATASET #
