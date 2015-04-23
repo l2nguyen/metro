@@ -581,6 +581,34 @@ data.describe()  # Should be 4017 obs
 # Bikeshare should have NaN values because bikeshare did not exist before Sept 2010
 data.isnull().sum()
 
+#=======================================================#
+# NUMBER OF RAIL CARS DATA
+#=======================================================#
+
+#===========#
+# READ DATA #
+#===========#
+
+cars = pd.read_csv('Metro_cars.csv')
+cars.columns = ['Weekday', 'Cars']  # rename columns
+cars.head(10)
+
+
+# Change Weekday variable to look like the metro data for merge
+cars['Weekday'] = cars['Weekday'].apply(lambda x: x[0:3])
+
+cars.head(10)  # make sure it worked
+
+#============#
+# MERGE DATA #
+#============#
+
+data = pd.merge(metro, cars, on='Weekday')  # Merge into data
+
+data.sort(['Year', 'Month', 'Day'], ascending=True, inplace=True)  # sort by date
+data.index = range(0,len(data.index))  # Re-indexing after sort
+data.head(10)  # Checked it worked
+
 #=========================#
 # EXPORT COMPILED DATASET #
 #=========================#
