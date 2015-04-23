@@ -361,7 +361,7 @@ data = pd.merge(metro, weather, on=['Year', 'Month', 'Day'])  # Merge metro/weat
 
 data.columns.values
 data.head(10)
-data.describe()  # should have 4018 obs in dataset
+assert len(data) == 4018  # should have 4018 obs in dataset
 
 ##########################################################################
 
@@ -439,7 +439,7 @@ data = pd.merge(data, gas, on=['Year', 'Month'])  # Merge in gas data
 
 data.columns.values
 data.head(10)
-data.describe()  # should have 4018 obs in dataset
+assert len(data) == 4018  # should have 4018 obs in dataset
 
 ##########################################################################
 
@@ -501,7 +501,7 @@ data = pd.merge(data, labor, on=['Year', 'Month'])  # Merge in unemployment data
 
 data.columns.values
 data.head(10)
-data.describe()  # should have 4018 obs
+assert len(data) == 4018  # should have 4018 obs
 
 ##########################################################################
 
@@ -544,7 +544,7 @@ holiday['Holiday'] = 1  # mark which days where federal govt was closed for merg
 data = pd.merge(data, holiday, how='outer', on=['Year', 'Month', 'Day'])  # Merge in holidays data
 
 data.head(10)
-data.describe()  # Should be 4018 obs
+assert len(data) == 4018  # Should be 4018 obs
 
 # Replace NaN values with 0 to make it a binary variable
 data['Holiday'].fillna(value=0, inplace=True)
@@ -576,7 +576,7 @@ cabi.isnull().sum()
 data = pd.merge(data, cabi, how='outer', on=['Year', 'Month', 'Day'])  # Merge in bikeshare data
 
 data.head(10)
-data.describe()  # Should be 4017 obs
+assert len(data) == 4018  # Should be 4018 obs
 
 # Bikeshare should have NaN values because bikeshare did not exist before Sept 2010
 data.isnull().sum()
@@ -603,7 +603,7 @@ cars.head(10)  # make sure it worked
 # MERGE DATA #
 #============#
 
-data = pd.merge(metro, cars, on='Weekday')  # Merge into data
+data = pd.merge(data, cars, on='Weekday')  # Merge into data
 
 data.sort(['Year', 'Month', 'Day'], ascending=True, inplace=True)  # sort by date
 data.index = range(0,len(data.index))  # Re-indexing after sort
