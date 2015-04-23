@@ -11,32 +11,34 @@
 import pandas as pd
 import numpy as np
 import matplotlib.pylab as plt
+import os
+
+# Set current working directory
+os.chdir("/Users/Zelda/Data Science/GA/Project/Data")
 
 #=======================================================#
 # METRO DATA
 #=======================================================#
 
-#============#
-# DATA FILES #
-#============#
-
 # Data of daily ridership of metro rail from Open Data DC
 # Note: Not disaggregated by station
 # Source: http://www.opendatadc.org/dataset/wmata-metrorail-ridership-by-date
 # Data scraped from visualization: http://planitmetro.com/ridership_cal/
-metro = '../Data/metro.csv'
 
 #===========#
 # READ DATA #
 #===========#
 
 # OPEN DATA DC METRO RIDERSHIP DATA
-metro = pd.read_csv(metro, header=True, names=['Date','Riders'])
+metro = pd.read_csv('metro.csv', header=False, names=['Date','Riders'])
 
 # QUICK LOOK
 metro.head(10)
 metro.describe()
 metro.dtypes
+
+assert (metro.duplicated().sum() == 0)  # make sure there are no duplicate values
+metro.isnull().sum()  # check for missing values
 
 #======================#
 # CLEAN/TRANSFORM DATA #
@@ -167,10 +169,9 @@ plt.savefig('Weekday vs weekend Ridership.png')
 # Data of rail ridership from May 2013
 # This data will be mainly used to see how people are moving throught the Metrorail system
 # Source: http://planitmetro.com/2014/08/28/data-download-may-2013-2014-metrorail-ridership-by-origin-and-destination/
-may = '../Data/Metro_May_2013_Data.csv'
 
 # MAY 2013 RIDERSHIP DATA
-may13 = pd.read_csv(may, header=True,
+may13 = pd.read_csv('Metro_May_2013_Data.csv', header=True,
                     names=['Holiday', 'Day', 'Entrance', 'Exit', 'Period', 'Riders'])
 
 # QUICK LOOK
@@ -221,7 +222,6 @@ plt.legend()
 
 # Daily weather data
 # Source: NOAA, Washington Reagan National Airport Weather Station
-weather = '../Data/Weather - Daily.csv'
 
 # IMPORTANT: Variables are all measured in METRIC units.
 # PRCP/SNOW is measured in millimiters .
@@ -231,7 +231,7 @@ weather = '../Data/Weather - Daily.csv'
 # READ DATA #
 #===========#
 
-weather = pd.read_csv(weather)
+weather = pd.read_csv('Weather - Daily.csv')
 
 # QUICK LOOK
 weather.columns.values
@@ -241,6 +241,9 @@ weather.describe()
 #-- 411 degrees Celsius (~771 deg F/hotter than hell) seems a bit high to be a max temp.
 #-- TMAX and TMIN variable have to be divided by 10 to get degrees Celsius
 #-- That must be what tenths of degrees celsius in documentation means
+
+assert (weather.duplicated().sum() == 0)  # make sure there are no duplicate values
+weather.isnull().sum()  # check for missing values
 
 #======================#
 # CLEAN/TRANSFORM DATA #
@@ -358,6 +361,7 @@ data = pd.merge(metro, weather, on=['Year', 'Month', 'Day'])  # Merge metro/weat
 
 data.columns.values
 data.head(10)
+data.describe()  # should have 4018 obs in dataset
 
 ##########################################################################
 
@@ -367,13 +371,12 @@ data.head(10)
 
 # Monthly data of gas prices in Lower Atlantic Region from EIA
 # Source URL: http://www.eia.gov/dnav/pet/pet_pri_gnd_dcus_r1z_m.htm
-gas = '../Data/Gas Prices.csv'
 
 #===========#
 # READ DATA #
 #===========#
 
-gas = pd.read_csv(gas)
+gas = pd.read_csv('Gas Prices.csv')
 gas.columns = ['Date', 'Gas_Price']  # Rename columns
 
 # QUICK LOOK
@@ -381,6 +384,7 @@ gas.head(10)
 gas.describe
 gas.dtypes
 
+assert (gas.duplicated().sum() == 0)  # make sure there are no duplicate values
 gas.isnull().sum()
 # No missing data
 
@@ -435,6 +439,7 @@ data = pd.merge(data, gas, on=['Year', 'Month'])  # Merge in gas data
 
 data.columns.values
 data.head(10)
+data.describe()  # should have 4018 obs in dataset
 
 ##########################################################################
 
@@ -444,18 +449,20 @@ data.head(10)
 
 # Monthly Unemployment data for the DC metro area, not adjusted for seasonality
 # Source: http://www.bls.gov/eag/eag.dc_washington_md.htm
-labor = '../Data/Unemployment.csv'
 
 #===========#
 # READ DATA #
 #===========#
 
-labor = pd.read_csv(labor)
+labor = pd.read_csv('Unemployment.csv')
 
 # QUICK LOOK
 labor.dtypes
 labor.head(10)
 labor.describe()
+
+assert (labor.duplicated().sum() == 0)  # check for duplicate values
+labor.isnull().sum()  # Check for missing values
 
 #======================#
 # CLEAN/TRANSFORM DATA #
@@ -494,35 +501,88 @@ data = pd.merge(data, labor, on=['Year', 'Month'])  # Merge in unemployment data
 
 data.columns.values
 data.head(10)
+data.describe()  # should have 4018 obs
+
+##########################################################################
 
 #=======================================================#
-# FEDERAL HOLIDAY DATA
+# FEDERAL GOVERNMENT CLOSING DATA
 #=======================================================#
+
+# Data with dates of federal holidays from 1997 - 2020
+# Source: http://catalog.data.gov/dataset/federal-holidays
+# Also added the government shut down days in October 2013 and snow days from OPM website
+#- ? Might want to remove those weather related shut down days because it
+#- ? might already be captured in the weather dataset
 
 #===========#
 # READ DATA #
 #===========#
 
-# Data with dates of federal holidays from 1997 - 2020
-# Source: http://catalog.data.gov/dataset/federal-holidays
-# Also added the government shut down days in October 2013 and snow days from OPM website
-holiday = pd.read_csv('/Users/Zelda/Data Science/GA/Project/Data/holidays.csv')
+holiday = pd.read_csv('holidays.csv')
 
 holiday.head(10)  # quick look at data
+holiday.describe()
+
+assert (holiday.duplicated().sum() == 0)  # make sure there are no duplicate values
+holiday.isnull().sum()  # check for missing values
+
+#======================#
+# CLEAN/TRANSFORM DATA #
+#======================#
 
 # Keep only days where federal government was closed for relevant years (2004-2014)
 holiday = holiday[(holiday['Year'] > 2003) & (holiday['Year'] < 2015)]
 holiday.head(10)  # check it worked
 
+holiday['Holiday'] = 1  # mark which days where federal govt was closed for merge
+
 #============#
 # MERGE DATA #
 #============#
 
-data = pd.merge(data, holiday, on=['Year', 'Month', 'Day'])  # Merge in unemployment data
+data = pd.merge(data, holiday, how='outer', on=['Year', 'Month', 'Day'])  # Merge in holidays data
 
+data.head(10)
+data.describe()  # Should be 4018 obs
+
+# Replace NaN values with 0 to make it a binary variable
+data['Holiday'].fillna(value=0, inplace=True)
+data['Holiday'].isnull().sum()  # check it worked
+
+#=======================================================#
+# CAPITAL BIKESHARE DATA
+#=======================================================#
+
+# Data summarizing the capital bikeshare ridership data
+# This dataset of number of registered/casual was compiled from their trip history data
+# Source: https://www.capitalbikeshare.com/trip-history-data
+
+# Casual useers will be a proxy for tourism
+# CaBi started in 2010 so there is only data from 2010-2014
+
+cabi = pd.read_csv('CaBi.csv')
+
+cabi.head(10)  # quick look at data
+cabi.describe()
+
+assert (cabi.duplicated().sum() == 0)  # make sure there are no duplicate values
+cabi.isnull().sum()
+
+#============#
+# MERGE DATA #
+#============#
+
+data = pd.merge(data, cabi, how='outer', on=['Year', 'Month', 'Day'])  # Merge in bikeshare data
+
+data.head(10)
+data.describe()  # Should be 4017 obs
+
+# Bikeshare should have NaN values because bikeshare did not exist before Sept 2010
+data.isnull().sum()
 
 #=========================#
 # EXPORT COMPILED DATASET #
 #=========================#
 
-data.to_csv('../Data/model_data.csv')
+data.to_csv('model_data.csv')
