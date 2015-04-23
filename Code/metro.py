@@ -78,6 +78,8 @@ metro['Weekday'] = metro.Weekday.map({  0:'Mon', 1:'Tue', 2:'Wed',
                                         3:'Thu', 4:'Fri', 5:'Sat',
                                         6:'Sun'})
 
+metro.reset_index(drop=True, inplace=True)  # Drop date as index
+
 #============#
 # GRAPH DATA #
 #============#
@@ -152,8 +154,6 @@ plt.title('Weekend and Weekday Ridership by Month')
 plt.axis([1, 12, 100000, 800000])
 plt.savefig('Weekday vs weekend Ridership.png')
 
-#########################################################################
-
 #=============================#
 # MAY 2013 ENTRANCE/EXIT DATA #
 #=============================#
@@ -213,8 +213,6 @@ pmpeak.groupby(['Exit']).Riders.sum().plot(kind='bar', color='m', label='Exit')
 pmpeak.groupby(['Entrance']).Riders.sum().plot(kind='bar', color='g', label='Entrance')
 plt.title('Number of Riders Entering/Exiting at Station during PM Peak in May 2013')
 plt.legend()
-
-#########################################################################
 
 #=======================================================#
 # WEATHER DATA
@@ -363,8 +361,6 @@ data.columns.values
 data.head(10)
 data.describe()  # should have 4018 obs in dataset
 
-##########################################################################
-
 #=======================================================#
 # GAS PRICE DATA
 #=======================================================#
@@ -441,8 +437,6 @@ data.columns.values
 data.head(10)
 data.describe()  # should have 4018 obs in dataset
 
-##########################################################################
-
 #=======================================================#
 # UNEMPLOYMENT DATA
 #=======================================================#
@@ -503,8 +497,6 @@ data.columns.values
 data.head(10)
 data.describe()  # should have 4018 obs
 
-##########################################################################
-
 #=======================================================#
 # FEDERAL GOVERNMENT CLOSING DATA
 #=======================================================#
@@ -561,6 +553,10 @@ data['Holiday'].isnull().sum()  # check it worked
 # Casual useers will be a proxy for tourism
 # CaBi started in 2010 so there is only data from 2010-2014
 
+#===========#
+# READ DATA #
+#===========#
+
 cabi = pd.read_csv('CaBi.csv')
 
 cabi.head(10)  # quick look at data
@@ -580,6 +576,32 @@ data.describe()  # Should be 4017 obs
 
 # Bikeshare should have NaN values because bikeshare did not exist before Sept 2010
 data.isnull().sum()
+
+#=======================================================#
+# NUMBER OF RAIL CARS DATA
+#=======================================================#
+
+#===========#
+# READ DATA #
+#===========#
+
+cars = pd.read_csv('Metro_cars.csv')
+cars.columns = ['Weekday', 'Cars']  # rename columns
+cars.head(10)
+
+# Change Weekday variable to look like the metro data for merge
+cars['Weekday'] = cars['Weekday'].apply(lambda x: x[0:3])
+
+cars.head(10)  # make sure it worked
+
+#============#
+# MERGE DATA #
+#============#
+
+data = pd.merge(metro, cars, on='Weekday')
+data.sort(['Year', 'Month', 'Day'], ascending=True, inplace=True)  # sort by date
+data.index = range(0,len(data.index))  # Re-indexing after sort
+data.head(10)  # Checked it worked
 
 #=========================#
 # EXPORT COMPILED DATASET #
