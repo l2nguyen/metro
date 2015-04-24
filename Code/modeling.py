@@ -10,17 +10,21 @@
 
 import pandas as pd
 import numpy as np
+import os
 import matplotlib.pylab as plt
 from sklearn.cross_validation import train_test_split
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error
 from sklearn.cross_validation import cross_val_score
 
+# Set current working directory
+os.chdir("/Users/Zelda/Data Science/GA/Project/Data")
+
 #=============#
 # IMPORT DATA #
 #=============#
 
-data = pd.read_csv('../Data/model_data.csv')
+data = pd.read_csv('model_data.csv')
 
 # Split data into weekday and weekends (Temporary)
 # ! Might try standardizing the data based on number of cars later
@@ -80,7 +84,7 @@ plm.coef_
 #============#
 
 # Evaluate the fit of the model based off of the training set
-assert not np.any(np.isnan(X_test)|np.isinf(X_test))  # Just to be safe
+assert not np.any(np.isnan(X_test) | np.isinf(X_test))  # Just to be safe
 preds = plm.predict(X_test)
 np.sqrt(mean_squared_error(Y_test,preds))
 # That is a pretty bad mean square error even for the scale we are working with
@@ -94,7 +98,7 @@ plt.scatter(preds, resid, alpha=0.7)
 plt.xlabel("Predicted Ridership")
 plt.ylabel("Residuals")
 #-- It appears that this model predicts ridership to be about 700,000 for the
-#-- majority of cases. This is about the value of the intercept. 
+#-- majority of cases. This is about the value of the intercept.
 
 # Evaluate the model fit based off of cross validation
 scores = cross_val_score(plm, X, Y, cv=10, scoring='mean_squared_error')
@@ -103,13 +107,13 @@ np.mean(np.sqrt(-scores))
 # RMSE is about equivalent to the standard deviation of weekday ridership
 
 #-- CONCLUSION: Not a very good model at all. Maybe because there is not much
-#-- variation in daily precipitation/snowfall. 
+#-- variation in daily precipitation/snowfall.
 
 #=======================================================#
 # LINEAR REGRESSION MODEL (MODEL #2)
 #=======================================================#
 
-#-- 2. Add unemployment rate as a feature 
+#-- 2. Add unemployment rate as a feature
 #-- FEATURES: Precipitation, Snow depths, Snow fall amount
 
 feats = ['PRCP','SNWD','SNOW', 'Unemp_Rate']
@@ -139,7 +143,7 @@ plm.coef_
 #============#
 
 # Evaluate the fit of the model based off of the training set
-assert not np.any(np.isnan(X_test)|np.isinf(X_test))  # Just to be safe
+assert not np.any(np.isnan(X_test) | np.isinf(X_test))  # Just to be safe
 preds = plm.predict(X_test)
 np.sqrt(mean_squared_error(Y_test,preds))
 # RMSE = 105110.70807714635
@@ -160,6 +164,4 @@ scores = cross_val_score(plm, X, Y, cv=10, scoring='mean_squared_error')
 np.mean(np.sqrt(-scores))
 # 113389.06012018192
 # Betetr than model 1 but not by much
-
-
 
