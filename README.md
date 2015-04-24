@@ -13,16 +13,15 @@ This is the class project for my General Assembly Data Science class.
 
 **Guide:**
 * For a flavor of the project concept, see [Initial class presentation](Initial Project Presentation.pdf)
-* Data wrangling code can be found [here](Code/metro.py)
+* Data wrangling code can be found [here](Code/wrangling.py)
 * Graphs visualizing data can be found [here](Graphs)
-* Modelling code can be found [here](Code/model.py)
+* Modelling code can be found [here](Code/modeling.py)
 * Documentation can be found [here](Documentation.pdf)
 
 **To Do List**
-* Transform the CaBi system to use as a proxy for tourism
-* Standardize the data by number of metro cars running in a day. Weekends will have fewer
 * Try random forests with the data
-* More models with different features. Adding and dropping features
+* Find a way to deal with outliers
+* Feature selection: figure out which features have a significant relationship with ridership numbers
 * Parameter tuning
 
 **Wish List**
@@ -36,3 +35,5 @@ This is the class project for my General Assembly Data Science class.
 * Weather data from [NOAA](http://www.ncdc.noaa.gov/cdo-web/datatools)
 (Note: I used data from the weather station at Reagan National Airport)
 * Capital Bikeshare (CaBi) data used as a proxy for tourism. Additionally, the increased use of bikeshare will mean fewer people will be taking the metro. CaBi trip history data found [here](https://www.capitalbikeshare.com/trip-history-data)
+* Federal closing days: Data for federal holidays can be found [here](https://catalog.data.gov/dataset/federal-holidays). This data was then supplemented with data of governemtn closing due to budget issues (Oct 2013) and snow days on from the [OPM archives](http://www.opm.gov/policy-data-oversight/snow-dismissal-procedures/status-archives/)
+* Number of rail cars was deduced from this [site](http://www.wmata.com/rail/frequency.cfm) that has the frequency of train arrivals. The number of cars was calculated by dividing the total number of minutes in each period and dividing it by the number of minutes in between trains
