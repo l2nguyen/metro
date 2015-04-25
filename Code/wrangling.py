@@ -536,6 +536,7 @@ holiday = holiday[(holiday['Year'] > 2003) & (holiday['Year'] < 2015)]
 holiday.head(10)  # check it worked
 
 holiday['Holiday'] = 1  # mark which days where federal govt was closed for merge
+holiday.head()  # check it worked
 
 #============#
 # MERGE DATA #
@@ -578,8 +579,10 @@ data = pd.merge(data, cabi, how='outer', on=['Year', 'Month', 'Day'])  # Merge i
 data.head(10)
 assert len(data) == 4018  # Should be 4018 obs
 
-# Bikeshare should have NaN values because bikeshare did not exist before Sept 2010
-data.isnull().sum()
+# Bikeshare did not exist before 2010 so will fill NaN values with 0
+data['Registered'].fillna(value=0, inplace=True)
+data['Casual'].fillna(value=0, inplace=True)
+data.isnull().sum()  # check it worked
 
 #=======================================================#
 # NUMBER OF RAIL CARS DATA
@@ -608,9 +611,10 @@ data = pd.merge(data, cars, on='Weekday')  # Merge into data
 data.sort(['Year', 'Month', 'Day'], ascending=True, inplace=True)  # sort by date
 data.index = range(0,len(data.index))  # Re-indexing after sort
 data.head(10)  # Checked it worked
+data.columns.values  # Check that the column names are all correct
 
 #=========================#
 # EXPORT COMPILED DATASET #
 #=========================#
 
-data.to_csv('model_data.csv')
+data.to_csv('model_data.csv', index=False)
