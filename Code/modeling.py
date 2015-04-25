@@ -14,11 +14,12 @@ import os
 import matplotlib.pylab as plt
 from sklearn.preprocessing import scale
 from sklearn.cross_validation import train_test_split
-from sklearn.linear_model import LinearRegression
-from sklearn.metrics import mean_squared_error
-from sklearn.cross_validation import cross_val_score
 from sklearn.feature_selection import f_regression
 from sklearn.feature_selection import RFE
+from sklearn.linear_model import LinearRegression
+from sklearn import ensemble
+from sklearn.metrics import mean_squared_error
+from sklearn.cross_validation import cross_val_score
 
 # Set current working directory
 os.chdir("/Users/Zelda/Data Science/GA/Project/Data")
@@ -50,11 +51,15 @@ X = data[feats]
 Y = data['RidersPC']
 
 #=======================================================#
+# DEAL WITH OUTLIERS
+#=======================================================#
+
+#=======================================================#
 # STANDARDIZE DATA
 #=======================================================#
 
-std_X = scale(X)
-std_Y = scale(Y)
+std_X = scale(X)  # Standardize features
+std_Y = scale(Y)  # Standardize response variable
 
 # Change into dataframe for easier visualizing
 std_X = pd.DataFrame(data=std_X, columns=feats)
@@ -66,7 +71,8 @@ std_Y = pd.DataFrame(data=std_Y, columns=['RidersPC'])
 
 # Split into train and test datasets
 # Test is 30% of complete dataset
-X_train, X_test, Y_train, Y_test = train_test_split(std_X, std_Y, test_size=0.3, random_state=1)
+# X_train, X_test, Y_train, Y_test = train_test_split(std_X, std_Y, test_size=0.3, random_state=1)
+X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.3, random_state=1)
 
 # Convert test/train data to data fame
 X_train = pd.DataFrame(data=X_train, columns=feats)
@@ -106,10 +112,10 @@ feat_sel
 # LINEAR REGRESSION MODEL
 #=======================================================#
 
-mfeats = ['SNWD', 'TMAX', 'TMIN', 'Labor Force', 'Employment', 'Registered', 'Holiday']
+mfeats = ['SNWD', 'TMAX', 'TMIN', 'Labor Force', 'Employment', 'Registered', 'Casual', 'Holiday']
 
 m_X = std_X[mfeats]
-m_Y = data['RidersPC']
+m_Y = std_Y['RidersPC']
 
 mX_train, mX_test, mY_train, mY_test = train_test_split(m_X, m_Y, test_size=0.3, random_state=1)
 
@@ -134,7 +140,8 @@ plm.coef_
 assert not np.any(np.isnan(mX_test) | np.isinf(mX_test))  # Just to be safe
 preds = plm.predict(mX_test)
 np.sqrt(mean_squared_error(mY_test,preds))
-# RMSE = 1265.869
+# RMSE = 0.9247
+# Not so good still.
 
 # Plot the residuals across the range of predicted values
 preds = np.ravel(preds)  # flatten ndarray
@@ -148,6 +155,32 @@ plt.show()
 # But the cases that are off are way off so are driving the RMSE up
 
 # Evaluate the model fit based off of cross validation
-scores = cross_val_score(plm, X, Y, cv=10, scoring='mean_squared_error')
+scores = cross_val_score(plm, m_X, m_Y, cv=20, scoring='mean_squared_error')
 np.mean(np.sqrt(-scores))
-# 1239.7653
+# 0.924
+
+#=======================================================#
+# RANDOM FOREST MODEL
+#=======================================================#
+
+rtr = ensemble.RandomForestRegressor()
+rtr.fit(X_train,Y_train)
+rtr.feature_importances_
+
+rtr.score(X_train,Y_train)
+# R squared is 0.862 - OK
+
+rtr.score(X_test,Y_test)
+# really terrible - it does not appear this current model is generalizable
+
+feat_select = pd.DataFrame(data=rtr.feature_importances_, index=feats, columns=['importance'])
+
+preds = rtr.predict(X)
+mean_squared_error(Y, preds)
+# 593895 - really terrible
+
+resid = preds - Y
+plt.scatter(preds, resid, alpha=0.7)
+plt.xlabel("Predicted Riders per Car")
+plt.ylabel("Residuals")
+plt.show()
