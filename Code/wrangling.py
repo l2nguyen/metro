@@ -309,7 +309,7 @@ def convert(df, var):
         df[var] = df[var].map(lambda x: (x/25.4))
 
 # Loop through all the variables that need converting
-for x in weather.columns.values[3:8]:
+for x in weather.columns.values[:5]:
     convert(weather,x)
 
 weather.describe()
