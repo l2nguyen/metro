@@ -238,7 +238,7 @@ weather.columns.values
 weather.head(10)
 weather.dtypes
 weather.describe()
-#-- 411 degrees Celsius (~771 deg F/hotter than hell) seems a bit high to be a max temp.
+#-- 406 degrees Celsius (~771 deg F/hotter than hell) seems a bit high to be a max temp.
 #-- TMAX and TMIN variable have to be divided by 10 to get degrees Celsius
 #-- That must be what tenths of degrees celsius in documentation means
 
@@ -299,14 +299,18 @@ weather['Day'] = weather.index.day
 # Drop date column
 weather.reset_index(drop=True)
 
-# Convert from tenths of degrees Celsius to Fahrenheit for easier understanding
-weather['TMAX'] = weather['TMAX'].map(lambda x:((float(9)/5)*(x/10) + 32))  # Highest temp
-weather['TMIN'] = weather['TMIN'].map(lambda x:((float(9)/5)*(x/10) + 32))  # Lowest temp
+# Convert from metric to imperial units for easier understanding
+def convert(df, var):
+    if var in ['TMAX', 'TMIN']:
+        df[var] = df[var].map(lambda x: (((9.0/5.0)*(x/10.0) + 32)))
+    elif var == 'PRCP':
+        df[var] = df[var].map(lambda x: (x/254.0))
+    elif var in ['SNWD', 'SNOW']:
+        df[var] = df[var].map(lambda x: (x/25.4))
 
-# Convert from mm to inches
-weather['PRCP'] = weather['PRCP'].map(lambda x:(x/float(254)))  # Precipitation
-weather['SNWD'] = weather['SNWD'].map(lambda x:(x/25.4))  # Snow Depth
-weather['SNOW'] = weather['SNOW'].map(lambda x:(x/25.4))  # Snowfall
+# Loop through all the variables that need converting
+for x in weather.columns.values[3:8]:
+    convert(weather,x)
 
 weather.describe()
 # Those max/min temps look much more reasonable
