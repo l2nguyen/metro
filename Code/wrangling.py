@@ -583,11 +583,6 @@ data = pd.merge(data, cabi, how='outer', on=['Year', 'Month', 'Day'])  # Merge i
 data.head(10)
 assert len(data) == 4018  # Should be 4018 obs
 
-# Bikeshare did not exist before 2010 so will fill NaN values with 0
-data['Registered'].fillna(value=0, inplace=True)
-data['Casual'].fillna(value=0, inplace=True)
-data.isnull().sum()  # check it worked
-
 #=======================================================#
 # NUMBER OF RAIL CARS DATA
 #=======================================================#
