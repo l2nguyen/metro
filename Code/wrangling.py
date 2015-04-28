@@ -516,8 +516,6 @@ assert len(data) == 4018  # should have 4018 obs
 # Data with dates of federal holidays from 1997 - 2020
 # Source: http://catalog.data.gov/dataset/federal-holidays
 # Also added the government shut down days in October 2013 and snow days from OPM website
-#- ? Might want to remove those weather related shut down days because it
-#- ? might already be captured in the weather dataset
 
 #===========#
 # READ DATA #
@@ -584,8 +582,14 @@ data.head(10)
 assert len(data) == 4018  # Should be 4018 obs
 
 #=======================================================#
-# NUMBER OF RAIL CARS DATA
+# NUMBER OF TRAINS DATA
 #=======================================================#
+
+# Using the data from the WMATA website:
+# http://www.wmata.com/rail/frequency.cfm
+# and a bit of math.
+# See the following spreadsheet for the math part:
+# https://docs.google.com/spreadsheets/d/1sXMg_2tFk22iIffE610YcJFJAdwMj2NgVwkaKZR2Evo/edit?usp=sharing
 
 #===========#
 # READ DATA #
@@ -595,8 +599,8 @@ cars = pd.read_csv('Metro_cars.csv')
 cars.columns = ['Weekday', 'Cars']  # rename columns
 cars.head(10)
 
-
-# Change Weekday variable to look like the metro data for merge
+# Change Weekday variable be the 3 letter abbreviation of day name
+# so that it looks like the metro data for merge
 cars['Weekday'] = cars['Weekday'].apply(lambda x: x[0:3])
 
 cars.head(10)  # make sure it worked
@@ -611,6 +615,24 @@ data.sort(['Year', 'Month', 'Day'], ascending=True, inplace=True)  # sort by dat
 data.index = range(0,len(data.index))  # Re-indexing after sort
 data.head(10)  # Checked it worked
 data.columns.values  # Check that the column names are all correct
+
+#- Holidays that fall on a weekday run on a Saturday schedule except for major holidays
+#- (ie Christmas), where it runs on a Sunday schedule. Let's just change it all to
+#- same number of trains as Saturday schedule for simplicity's sake
+
+weekday = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri']
+
+# Change number of trains from weekday number to Saturday number (89)
+data['Cars'][(data['Holiday'] == 1) & (data['Weekday'].isin(weekday))] = 89
+
+#- According to the WMATA website:
+#- July 4th runs on regular holiday schedule from 7 AM-6 PM
+#- And then on "near rush hour schedule" from 6 PM until midnight
+#- I'm assuming near rush hour is 8 minutes per train
+#- The math works out to 100 trains for July 4th
+
+# Change number of trains for July 4th
+data['Cars'][(data['Month'] == 7) & (data['Day'] == 4)] = 100
 
 #=========================#
 # EXPORT COMPILED DATASET #
