@@ -103,8 +103,6 @@ plt.show()
 
 # Make z score for Riders Per Car data to flag outliers in that variable
 data['RidersPC_z'] = (data['RidersPC'] - data['RidersPC'].mean()) / data['RidersPC'].std()
-# Make z score for Riders to flag outliers in that variables
-data['Riders_z'] = (data['Riders'] - data['Riders'].mean()) / data['Riders'].std()
 
 # Look at obs +/- 3 SD away
 data[(abs(data['RidersPC_z']) >= 3)]
@@ -115,11 +113,6 @@ data[(abs(data['RidersPC_z']) >= 3)]
 
 # Trim outliers from dataset
 trim_data = data[(abs(data['RidersPC_z']) < 3)]
-
-# Look at obs for Riders variable +/- 3 SD away
-data[(abs(data['Riders_z']) >= 3)]
-# Trim Riders outliers from dataset
-trim_data = data[(abs(data['Riders_z']) < 3)]
 
 # Bikeshare did not exist before 2010 so will fill NaN values with 0
 # for all the models
@@ -151,11 +144,11 @@ def feat_sel(feats, resp):  # Function to run feature selection
 feat_sel(X,Y)  # Run feature selection on trimmed dataset
 #-- Let's put the threshold at F_score of 30.
 #-- From this, it appears the significant features are:
-#-- TMAX, TMIN, Gas_Price, Labor Force, Employment, Unemployment
+#-- TMAX, TMIN, Gas_Price, Labor Force, Employment,
 #-- Registered CaBi Riders, Casual CaBi Riders, Holiday
 
 # Use only feats that have an F-score over the threshold
-new_feats = ['TMAX', 'TMIN', 'SNWD', 'WT18', 'Gas_Price', 'Labor Force', 'Employment', 'Unemployment', 'Registered', 'Casual', 'Holiday']
+new_feats = ['TMAX', 'TMIN', 'SNWD', 'Gas_Price', 'Labor Force', 'Employment', 'Registered', 'Casual', 'Holiday']
 
 X = trim_data[new_feats]
 Y = trim_data[resp]
@@ -191,7 +184,7 @@ plm.coef_
 assert not np.any(np.isnan(X_test) | np.isinf(X_test))  # Just to be safe
 preds = plm.predict(X_test)
 np.sqrt(mean_squared_error(Y_test,preds))
-# RMSE = 1159.94
+# RMSE = 1180.19
 # Not bad. It's about equivalent to the standard deviation of the Riders per car variable
 
 # Plot the residuals across the range of predicted values
@@ -206,7 +199,7 @@ plt.show()
 # Evaluate the model fit based off of cross validation
 scores = cross_val_score(plm, X, Y, cv=20, scoring='mean_squared_error')
 np.mean(np.sqrt(-scores))
-# RMSE from cross validation = 1188.36
+# RMSE from cross validation = 1206.75
 
 #=======================================================#
 # RANDOM FOREST MODEL
@@ -215,18 +208,19 @@ np.mean(np.sqrt(-scores))
 rtr = ensemble.RandomForestRegressor()
 rtr.fit(X_train,Y_train)
 rtr.score(X_train,Y_train)
-# R squared is 0.862 - OK
+# R squared is 0.852 - OK
 
 rtr.score(X_test,Y_test)
-# really terrible - it does not appear this current model is generalizable
+# 0.2435 - it does not appear this current model is generalizable
 
 rtr_select = pd.DataFrame(data=rtr.feature_importances_, index=X.columns.values, columns=['importance'])
 
 preds = rtr.predict(X)
 mean_squared_error(Y, preds)
-# 554945 - really terrible
+# 573700 - really terrible
 
-resid = preds - Y
+# Plot residualsR
+resid = preds - Y.T
 plt.scatter(preds, resid, alpha=0.7)
 plt.xlabel("Predicted Riders per Train")
 plt.ylabel("Residuals")
@@ -267,8 +261,8 @@ feat_sel(X_wkend, Y_wkend)
 # Holiday has very little effect on weekend ridership
 
 # Weekday features (thresdhold: F-score>40)
-wkday_feats = ['SNWD', 'TMAX', 'TMIN', 'Gas_Price', 'Labor Force', 'Employment', 'Unemployment', 'Holiday']
-wkend_feats = ['TMAX', 'TMIN', 'Gas_Price', 'Labor Force', 'Employment', 'Casual']
+wkday_feats = ['SNWD', 'TMAX', 'TMIN', 'Gas_Price', 'Labor Force', 'Employment', 'Unemployment', 'Holiday', 'Registered']
+wkend_feats = ['TMAX', 'TMIN', 'Gas_Price', 'Labor Force', 'Employment', 'Holiday', 'Casual']
 
 # Replace old datasets with new one with selected features
 X_wkday = X_wkday[wkday_feats]
@@ -295,7 +289,7 @@ wlm.fit(Xwkday_train, Ywkday_train)
 wlm.intercept_
 wlm.coef_
 
-# WEEKDAY MODEL
+# WEEKEND MODEL
 wnlm = LinearRegression()
 wnlm.fit(Xwkend_train, Ywkend_train)
 
@@ -315,13 +309,11 @@ wnlm.coef_
 assert not np.any(np.isnan(Xwkday_test) | np.isinf(Xwkday_test))  # Just to be safe
 preds = wlm.predict(Xwkday_test)
 np.sqrt(mean_squared_error(Ywkday_test,preds))
-# RMSE = 648.1
+# RMSE = 721.35
 # Performs better than the model of the full dataset
 
 # Plot the residuals across the range of predicted values
-preds = np.ravel(preds)  # flatten ndarray
-
-resid = preds - Ywkday_test
+resid = np.ravel(preds) - np.ravel(Ywkday_test)
 plt.scatter(preds, resid, alpha=0.7)
 plt.xlabel("Predicted Ridership per Train (Weekdays)")
 plt.ylabel("Residuals")
@@ -331,7 +323,7 @@ plt.show()
 # Evaluate the model fit based off of cross validation
 scores = cross_val_score(plm, X_wkday, Y_wkday, cv=20, scoring='mean_squared_error')
 np.mean(np.sqrt(-scores))
-# RMSE from cross validation = 646.72
+# RMSE from cross validation = 706.78
 
 #===============#
 # WEEKEND MODEL
@@ -340,14 +332,12 @@ np.mean(np.sqrt(-scores))
 # Evaluate the fit of the model based off of the training set
 assert not np.any(np.isnan(Xwkend_test) | np.isinf(Xwkend_test))  # Just to be safe
 preds = wnlm.predict(Xwkend_test)
-np.sqrt(mean_squared_error(Ywkend_test,preds))
-# RMSE = 629.24
+np.sqrt(mean_squared_error(Ywkend_test, preds))
+# RMSE = 755.02
 # Much worse at predicting weekend ridership
 
 # Plot the residuals across the range of predicted values
-preds = np.ravel(preds)  # flatten ndarray
-
-resid = preds - Ywkend_test
+resid = np.ravel(preds) - np.ravel(Ywkend_test)
 plt.scatter(preds, resid, alpha=0.7)
 plt.xlabel("Predicted Ridership per Train (Weekends)")
 plt.ylabel("Residuals")
@@ -357,13 +347,116 @@ plt.show()
 # Evaluate the model fit based off of cross validation
 scores = cross_val_score(wnlm, X_wkend, Y_wkend, cv=20, scoring='mean_squared_error')
 np.mean(np.sqrt(-scores))
-# RMSE from cross validation = 687.03
+# RMSE from cross validation = 715.13
 
 #-- This double model performs better than the full dataset model
 #-- However, the lower sample size for weekend will cause issues with how
-#-- generalizable this model will be
+#-- generalizable that model will be
+
+##########################################################################
+
+#=======================================================#
+# DATASET SPLIT FOR HOLIDAY/REGULAR DAY SPLIT
+#=======================================================#
+
+# Feature datasets
+X_regular = trim_data[feats][trim_data['Holiday'] == 0]
+X_holiday = trim_data[feats][trim_data['Holiday'] == 1]
+
+# Response datasets
+Y_regular = trim_data[resp][trim_data['Holiday'] == 0]
+Y_holiday = trim_data[resp][trim_data['Holiday'] == 1]
+#- NOTE: Holiday has only 134 obs
+#- Any model made with this will probably not be very good
+
+# Drop holiday from data frames
+X_regular.drop('Holiday', axis=1, inplace=True)
+X_holiday.drop('Holiday', axis=1, inplace=True)
+
+#=======================================================#
+# SPLIT INTO TRAIN/TEST (TRIMMED DATASET)
+#=======================================================#
+
+# HOLIDAY DATASET
+Xh_train, Xh_test, Yh_train, Yh_test = train_test_split(X_holiday, Y_holiday, test_size=0.3, random_state=1)
+
+# REGULAR DAY DATASET
+Xr_train, Xr_test, Yr_train, Yr_test = train_test_split(X_regular, Y_regular, test_size=0.3, random_state=1)
+
+#=======================================================#
+# LINEAR REGRESSION MODEL (HOLIDAY/REGULAR MODELS)
+#=======================================================#
+
+# HOLIDAY MODEL
+holm = LinearRegression()
+holm.fit(Xh_train, Yh_train)
+
+holm.intercept_
+holm.coef_
+
+# REGULAR DAY MODEL
+relm = LinearRegression()
+relm.fit(Xr_train, Yr_train)
+
+relm.intercept_
+relm.coef_
+
+#=====================================#
+# MODEL EVAL (HOLIDAY/REGULAR MODELS) #
+#=====================================#
+
+#===============#
+# HOLIDAY MODEL
+#===============#
+
+# Evaluate the fit of the model based off of the training set
+assert not np.any(np.isnan(Xh_test) | np.isinf(Xh_test))  # Just to be safe
+preds = holm.predict(Xh_test)
+np.sqrt(mean_squared_error(Yh_test,preds))
+# RMSE = 1742.9
+
+# Plot the residuals across the range of predicted values
+resid = np.ravel(preds) - np.ravel(Yh_test)
+plt.scatter(preds, resid, alpha=0.7)
+plt.xlabel("Predicted Ridership per Train (Holidays)")
+plt.ylabel("Residuals")
+plt.show()
+# All over the place. Probably because some holidays, people will travel more.
+# And some holidays, people will travel less
+
+# Evaluate the model fit based off of cross validation
+scores = cross_val_score(plm, X_holiday, Y_holiday, cv=20, scoring='mean_squared_error')
+np.mean(np.sqrt(-scores))
+# RMSE from cross validation = 1625.19
+
+#===================#
+# REGULAR DAY MODEL
+#===================#
+# Evaluate the fit of the model based off of the training set
+assert not np.any(np.isnan(Xr_test) | np.isinf(Xr_test))  # Just to be safe
+preds = relm.predict(Xr_test)
+np.sqrt(mean_squared_error(Yr_test, preds))
+# RMSE = 1188.14
+
+# Plot the residuals across the range of predicted values
+resid = np.ravel(preds) - np.ravel(Yr_test)
+plt.scatter(preds, resid, alpha=0.7)
+plt.xlabel("Predicted Ridership per Train (Regular Days)")
+plt.ylabel("Residuals")
+plt.show()
+# Model more likely to predict fewer riders than there should be
+# Similar to the residual plots of the model with no split at all
+
+# Evaluate the model fit based off of cross validation
+scores = cross_val_score(plm, X_regular, Y_regular, cv=20, scoring='mean_squared_error')
+np.mean(np.sqrt(-scores))
+# RMSE from cross validation = 1179.19
+
+#- Because there were so few holidays in the dataset, this model performed
+#- just as well as the one with no split at all.
 
 
+# TO DO: Ensemble methods: Adaboost regressor, Gradient boosting regressor
 
 
 # SPLIT OFF DATASET WHERE CAPITAL BIKESHARE EXISTED
@@ -381,11 +474,4 @@ Y_cabi = dcabi['RidersPC']
 
 
 
-# HOLIDAY/REGULAR DAY SPLIT ----------------------------
-# Feature dataset
-X_regular = data[feats][data['Holiday'] == 0]
-X_holiday = data[feats][data['Holiday'] == 1]
 
-# Response dataset
-Y_regular = data[resp][data['Holiday'] == 0]
-Y_holiday = data[resp][data['Holiday'] == 1]
