@@ -526,6 +526,7 @@ holiday = pd.read_csv('holidays.csv')
 holiday.head(10)  # quick look at data
 holiday.describe()
 
+
 assert (holiday.duplicated().sum() == 0)  # make sure there are no duplicate values
 holiday.isnull().sum()  # check for missing values
 
@@ -552,6 +553,7 @@ assert len(data) == 4018  # Should be 4018 obs
 # Replace NaN values with 0 to make it a binary variable
 data['Holiday'].fillna(value=0, inplace=True)
 data['Holiday'].isnull().sum()  # check it worked
+data['Holiday']=data['Holiday'].astype('int8') # Turn into integer
 
 #=======================================================#
 # CAPITAL BIKESHARE DATA
@@ -616,6 +618,7 @@ data.index = range(0,len(data.index))  # Re-indexing after sort
 data.head(10)  # Checked it worked
 data.columns.values  # Check that the column names are all correct
 
+#- HOLIDAY SCHEDULE
 #- Holidays that fall on a weekday run on a Saturday schedule except for major holidays
 #- (ie Christmas), where it runs on a Sunday schedule. Let's just change it all to
 #- same number of trains as Saturday schedule for simplicity's sake
@@ -625,6 +628,7 @@ weekday = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri']
 # Change number of trains from weekday number to Saturday number (89)
 data['Cars'][(data['Holiday'] == 1) & (data['Weekday'].isin(weekday))] = 89
 
+#- JULY 4TH SCHEDULE
 #- According to the WMATA website:
 #- July 4th runs on regular holiday schedule from 7 AM-6 PM
 #- And then on "near rush hour schedule" from 6 PM until midnight
@@ -633,6 +637,17 @@ data['Cars'][(data['Holiday'] == 1) & (data['Weekday'].isin(weekday))] = 89
 
 # Change number of trains for July 4th
 data['Cars'][(data['Month'] == 7) & (data['Day'] == 4)] = 100
+
+#- PRESIDENTIAL INAUGURATION
+# In this dataset, there are three presidential inaguaration in this dataset.
+# GW Bush - January 20, 2005; Obama - January20, 2009 and 2013
+# According to the WMATA website, they run on a 4 AM - 9 PM rush hour
+# And then regular holiday service after 9 PM
+# Math works out to 190 cars
+inaug_year = [2005, 2009, 2013]
+
+# Change number of trains for Inauguration days
+data['Cars'][(data['Year'].isin(inaug_year)) & (data['Month'] == 1) & (data['Day'] == 20)] = 190
 
 #=========================#
 # EXPORT COMPILED DATASET #
