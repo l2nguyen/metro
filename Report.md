@@ -28,7 +28,23 @@ I used the following features in my model:
 All the datasets that I used were simple and already mostly clean.  I had to transform the date variable in each dataset to a standardardized format so that they could be merged into one large dataset. 
 
 ## Data Visualization
-### Characteristics of Metro Ridership
-#### By Month
-![alt text](Graphs/Average Ridership by Day of Week (Boxplot).png)
+### Characteristics of Metrorail Ridership
+##### Average Ridership By Month
+![alt text](Graphs/Average Ridership by Month.png)
 
+We can see the seasonal differences in metrorail ridership in the above graph. Ridership is highest in the months of April and June. It is lowest in the winter months (December-February). I suspect that the monthly differences are due to: tourism and people in DC going on vacation. Since ridership varies vastly by month, I decided to use Month as a feature after transforming the categorical variable to several binary ones. 
+
+##### Average Ridership by Day of the Week
+![alt text](Graphs/Weekend and Weekday Riderhsip by Month.png)
+
+We can see in the above graph that average metrorail ridership is significantly lower on weekends than weekdays. This supports my hypothesis that many people ride the metrorail to get to and from work. Additionally, the monthly variation in the weekday and weekend ridership have the same pattern so it appears other factors are affecting weekday and weekend ridership about the same. 
+
+##### Effect of Inclemenet Weather on Metrorail Ridership
+![alt text](Graphs/Ridership for February 2010.png)
+
+During February 6-15 2010, DC was hit hard by several blizzards causing an event more popularly known as Snowmageddon. Because of the large amount of snow, many offices (including the federal government) were closed during this time. The graph above shows that ridership is extremely low during the Snowmageddon days. This effect can also be seen when Hurricane Sandy hit DC at the end of October 2012. 
+
+### Scatter Matrix of Weather Variables and Ridership
+![alt text](Scatter Matrix (weather).png)
+
+The above scatter matrix shows the relationship of all the weather variables and ridership to each other. It is interesting to note the two groups in Ridership in max temperature (TMAX) and min temperatures (TMIN). The lower ridership group will be the weekend days and the higher ridership group will be the weekday days. Looking at the snow depth variable (SNWD), we can see that there is extremely low ridership when there is a large amount of snow on the ground. Precipation seeem to have no clear effect on ridership.
