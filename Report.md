@@ -49,7 +49,7 @@ During February 6-15 2010, DC was hit hard by several blizzards causing an event
 The above scatter matrix shows the relationship of all the weather variables and ridership to each other. It is interesting to note the two groups in Ridership in max temperature (TMAX) and min temperatures (TMIN). The lower ridership group will be the weekend days and the higher ridership group will be the weekday days. Looking at the snow depth variable (SNWD), we can see that there is extremely low ridership when there is a large amount of snow on the ground. Precipation seeem to have no clear effect on ridership.
 
 ##### Holiday Effect
-![alt text](Graphs/Riders per Train by Holiday.png=250x)
+![alt text](Graphs/Riders per Train by Holiday.png =250x)
 
 The variable with the most significant effect will be weather if the day was a holiday or not. Holiday ridership is on average 60% of the amount of regular day ridership. 
 
