@@ -52,6 +52,14 @@ def cvrmse(X,Y,lm):  # Function to get rmse for cross validation
     return np.mean(np.sqrt(-scores))
 
 
+def ttcompare(feat_test, resp_test, feat_train, resp_train, lm):  # Plot train/test residuals
+    plt.scatter(lm.predict(feat_train), lm.predict(feat_train) - resp_train, c='b', s=30, alpha=0.6)
+    plt.scatter(lm.predict(feat_test), lm.predict(feat_test) - resp_test, c='g', s=30, alpha=0.6)
+    plt.title('Residual plot using train (blue) and test (green) data')
+    plt.ylabel('Residuals')
+    plt.xlabel('Predicted Value')
+    plt.show()
+
 #=============#
 # IMPORT DATA #
 #=============#
@@ -145,8 +153,6 @@ f_select
 # LINEAR REGRESSION MODEL (COMPLETE TRIMMED DATASET)
 #==========================================================#
 # NOTE: This uses all the features
-
-# Linear regression model
 alm = LinearRegression()
 alm.fit(X_train, Y_train)
 
@@ -159,7 +165,7 @@ alm.coef_
 
 # Evaluate the fit of the model based off of the training set
 assert not np.any(np.isnan(X_test) | np.isinf(X_test))  # Just to be safe
-preds = alm.predict(X_test)
+pred = alm.predict(X_test)
 np.sqrt(mean_squared_error(Y_test,preds))
 # RMSE = 1159.95
 # Not bad. It's about equivalent to the standard deviation of the Riders per car variable
@@ -167,6 +173,10 @@ np.sqrt(mean_squared_error(Y_test,preds))
 plot_residuals(Y_test,preds)
 # Looking at the graph, it appears that the residuals fall more on the negative side
 # This model seems to lean towards predicting inaccurately on the lesser side than the higher side
+
+# Plot train/test residuals
+ttcompare(X_test,Y_test,X_train,Y_train,alm)
+# Equally wrong for both
 
 # Evaluate the model fit based off of cross validation
 cvrmse(X,Y,alm)
@@ -218,6 +228,8 @@ np.sqrt(mean_squared_error(Ynew_test,preds))
 plot_residuals(Ynew_test,preds)
 # Looking at the graph, it appears that the residuals fall more on the negative side
 # This model seems to lean towards predicting inaccurately on the lesser side than the higher side
+
+ttcompare(Xnew_test,Ynew_test,Xnew_train,Ynew_train,fslm)
 
 # Evaluate the model fit based off of cross validation
 cvrmse(X_new,Y_new,fslm)
@@ -447,6 +459,10 @@ np.sqrt(mean_squared_error(Ywkday_test,preds))
 # Plot the residuals across the range of predicted values
 plot_residuals(Ywkday_test,preds)
 # Got most of the points right but some points are pretty off driving up the RMSE
+# Those points in the linear model down there are probably holidays
+
+# Plot train/test residuals for weekday model
+ttcompare(Xwkday_test,Ywkday_test,Xwkday_train,Ywkday_train,wlm)
 
 # Evaluate the model fit based off of cross validation
 cvrmse(X_wkday,Y_wkday,wlm)
