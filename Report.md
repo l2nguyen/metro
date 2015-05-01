@@ -31,14 +31,17 @@ All the datasets that I used were simple and already mostly clean.  I had to tra
 ### Characteristics of Metrorail Ridership
 ##### Average Ridership By Month
 ![alt text](Graphs/Average Ridership by Month.png)
+
 We can see the seasonal differences in metrorail ridership in the above graph. Ridership is highest in the months of April and June. It is lowest in the winter months (December-February). I suspect that the monthly differences are due to: tourism and people in DC going on vacation. Since ridership varies vastly by month, I decided to use Month as a feature after transforming the categorical variable to several binary ones. 
 
 ##### Average Ridership by Day of the Week
 ![alt text](Graphs/Weekend and Weekday Riderhsip by Month.png)
+
 We can see in the above graph that average metrorail ridership is significantly lower on weekends than weekdays. This supports my hypothesis that many people ride the metrorail to get to and from work. Additionally, the monthly variation in the weekday and weekend ridership have the same pattern so it appears other factors are affecting weekday and weekend ridership about the same. 
 
 ##### Effect of Inclemenet Weather on Metrorail Ridership
 ![alt text](Graphs/Ridership for February 2010.png)
+
 During February 6-15 2010, DC was hit hard by several blizzards causing an event more popularly known as Snowmageddon. Because of the large amount of snow, many offices (including the federal government) were closed during this time. The graph above shows that ridership is extremely low during the Snowmageddon days. This effect can also be seen when Hurricane Sandy hit DC at the end of October 2012. 
 
 ##### Scatter Matrix of Weather Variables and Ridership
@@ -46,18 +49,22 @@ During February 6-15 2010, DC was hit hard by several blizzards causing an event
 The above scatter matrix shows the relationship of all the weather variables and ridership to each other. It is interesting to note the two groups in Ridership in max temperature (TMAX) and min temperatures (TMIN). The lower ridership group will be the weekend days and the higher ridership group will be the weekday days. Looking at the snow depth variable (SNWD), we can see that there is extremely low ridership when there is a large amount of snow on the ground. Precipation seeem to have no clear effect on ridership.
 
 ##### Holiday Effect
-![alt text](Graphs/Riders per Train by Holiday.png)
+![alt text](Graphs/Riders per Train by Holiday.png = 250x)
+
 The variable with the most significant effect will be weather if the day was a holiday or not. Holiday ridership is on average 60% of the amount of regular day ridership. 
 
 ##### Employment
 ![alt text](Graphs/Riders per Train by Number of People Employed.png)
+
 In the above graph, red is weekend days and blue is weekday days. The data points appear to be grouped in vertical lines because the ridership data is daily while employment data is at the monthly level. Number of people employed does appear to have a slight upward trend in the weekday obs but there relationship is not obvious. There appers to be no pattern between employment and weekend ridership.
 
 ## Outliers
 Since a linear regression model is extremely sensitive to outliers, I had to identify and find ways to deal with outliers. To identify outliers, I standardized the Riders per Train variable into z-scores. The z-scores will show me how many standard deviations (SD) the value is from the mean. There were 16 observations that were +/- 3 SD away from the mean, out of a total of 4018 total observations. Luckily, this is less than 1% of the data so removing all these outliers would not greatly affect my sample size. From looking at the characteristics of the outliers, many of the outliers are Christmas Day or other major holidays. These days would naturally have very low ridership. I decided on trimming data points that were greater than +/- 3.5 SD away. This resulted in the removal of two data points from the datset: October 39, 2012 (Metro completely closed for Hurricane Sandy) and January 19, 2009 (the day before Obama's first inaguaration).
 
 ## Modeling
-Because my response variable is continuous and I wanted interpretable results from my model, I decided that the best model to use would be a linear regression. However, since I was curious about how a linear regression model would perform against other models, I also fitted a random forest model and gradient boosting regressor model to the data. Although tree based models are not sensitive to outliers, I ran all three models on the same datasets since I only trimmed two outliers. You can see in the table below that the Gradient Boosting Regressor model performs the best out of the four. Surprisingly, it also appears that removing noise by selecting features that are more significant (using p values) did not improve the performance of the linear regression model. Although the random forest also has the best R squared value for the dataset, it has starkly different values of R squared for the train (0.868) and test (0.267) datasets. The other models have fairly similar R squared values for both test and train datasets. The stark difference shows that the random forest model is overfitting the train dataset while the other models are perforing equally poorly in both train and test dataset. 
+Because my response variable is continuous and I wanted interpretable results from my model, I decided that the best model to use would be a linear regression. However, since I was curious about how a linear regression model would perform against other models, I also fitted a random forest model and gradient boosting regressor model to the data. Although tree based models are not sensitive to outliers, I ran all three models on the same datasets since I only trimmed two outliers. Since I just wanted to look at the baseline performance of the models, I did not do any parameter tuning for any of the models. 
+
+You can see in the table below that the Gradient Boosting Regressor model performs the best out of the four. Surprisingly, it also appears that removing noise by selecting features that are more significant (using p values) did not improve the performance of the linear regression model. Although the random forest also has the best R squared value for the dataset, it has starkly different values of R squared for the train (0.868) and test (0.267) datasets. The other models have fairly similar R squared values for both test and train datasets. The stark difference shows that the random forest model is overfitting the train dataset while the other models are perforing equally poorly in both train and test dataset.
 
 | Model       								| CV RMSE   | R squared |
 | ------------------------------------------|:---------:|:----------:
