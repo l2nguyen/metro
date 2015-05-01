@@ -49,7 +49,7 @@ During February 6-15 2010, DC was hit hard by several blizzards causing an event
 The above scatter matrix shows the relationship of all the weather variables and ridership to each other. It is interesting to note the two groups in Ridership in max temperature (TMAX) and min temperatures (TMIN). The lower ridership group will be the weekend days and the higher ridership group will be the weekday days. Looking at the snow depth variable (SNWD), we can see that there is extremely low ridership when there is a large amount of snow on the ground. Precipation seeem to have no clear effect on ridership.
 
 ##### Holiday Effect
-![alt text](Graphs/Riders per Train by Holiday.png =250x)
+![alt text](Graphs/Riders per Train by Holiday.png)
 
 The variable with the most significant effect will be weather if the day was a holiday or not. Holiday ridership is on average 60% of the amount of regular day ridership. 
 
@@ -62,6 +62,7 @@ In the above graph, red is weekend days and blue is weekday days. The data point
 Since a linear regression model is extremely sensitive to outliers, I had to identify and find ways to deal with outliers. To identify outliers, I standardized the Riders per Train variable into z-scores. The z-scores will show me how many standard deviations (SD) the value is from the mean. There were 16 observations that were +/- 3 SD away from the mean, out of a total of 4018 total observations. Luckily, this is less than 1% of the data so removing all these outliers would not greatly affect my sample size. From looking at the characteristics of the outliers, many of the outliers are Christmas Day or other major holidays. These days would naturally have very low ridership. I decided on trimming data points that were greater than +/- 3.5 SD away. This resulted in the removal of two data points from the datset: October 39, 2012 (Metro completely closed for Hurricane Sandy) and January 19, 2009 (the day before Obama's first inaguaration).
 
 ## Modeling
+#### Full dataset models
 Because my response variable is continuous and I wanted interpretable results from my model, I decided that the best model to use would be a linear regression. However, since I was curious about how a linear regression model would perform against other models, I also fitted a random forest model and gradient boosting regressor model to the data. Although tree based models are not sensitive to outliers, I ran all three models on the same datasets since I only trimmed two outliers. Since I just wanted to look at the baseline performance of the models, I did not do any parameter tuning for any of the models. 
 
 You can see in the table below that the Gradient Boosting Regressor model performs the best out of the four. Surprisingly, it also appears that removing noise by selecting features that are more significant (using p values) did not improve the performance of the linear regression model. Although the random forest also has the best R squared value for the dataset, it has starkly different values of R squared for the train (0.868) and test (0.267) datasets. The other models have fairly similar R squared values for both test and train datasets. The stark difference shows that the random forest model is overfitting the train dataset while the other models are perforing equally poorly in both train and test dataset.
@@ -73,6 +74,6 @@ You can see in the table below that the Gradient Boosting Regressor model perfor
 | Random Forest Regressor     				| 1146.71   | 0.696		|
 | Gradient Boosting Regressor				| 1074.53  	| 0.430		|
 
-
+#### Split models
 
 
