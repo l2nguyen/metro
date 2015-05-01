@@ -23,6 +23,35 @@ from sklearn.cross_validation import cross_val_score
 # Set current working directory
 os.chdir("/Users/Zelda/Data Science/GA/Project/Data")
 
+#==================#
+# DEFINE FUNCTIONS #
+#==================#
+
+
+def feat_sel(feats, resp):  # Function to run feature selection
+    std_feats = scale(feats)  # Standardize features
+    std_resp = scale(resp)  # Standardize response variable
+    # Run f-test for feature selection
+    ftest = f_regression(std_feats, std_resp)
+    feat_sel = pd.DataFrame(data=ftest[0], index=feats.columns.values, columns=['F_score'])  # makes data frame with p values
+    feat_sel['p_values'] = ftest[1]  # Make p-values column
+    return feat_sel  # print out feature selection
+
+
+def plot_residuals(actual, predictions):  # Function to plot predictions
+    residuals = predictions - actual
+    plt.scatter(actual, residuals, alpha=0.7)
+    plt.xlabel("Predicted Ridership per Train")
+    plt.ylabel("Residuals")
+    plt.show()
+    return plt
+
+
+def cvrmse(X,Y,lm):  # Function to get rmse for cross validation
+    scores = cross_val_score(lm, X, Y, cv=20, scoring='mean_squared_error')
+    return np.mean(np.sqrt(-scores))
+
+
 #=============#
 # IMPORT DATA #
 #=============#
@@ -42,10 +71,13 @@ data[(abs(data['RidersPC_z']) >= 3)]
 #- 16 observations out of 4018 (<1% of obs)
 #- The majority of outliers are on the minus side.
 #- Also, the majority of them are holidays.
-#- Will try making two different models for holiday and regular days
+#- They all fall under the following categories:
+#- * Christmas day
+#- * Extreme weather conditions (Snowmageddon, Hurricane Sandy)
+#- * One day from Obama's inauguration
 
-# Trim outliers from dataset
-trim_data = data[(abs(data['RidersPC_z']) < 3)]
+# Trim the two data points from Hurricane Sandy and Obama's inauguration
+trim_data = data[(abs(data['RidersPC_z']) < 3.5)]
 
 # Define feature and response variables
 feats = list(data.columns.values[5:-2])
@@ -71,14 +103,14 @@ X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.3, random_
 rtr = ensemble.RandomForestRegressor()
 rtr.fit(X_train,Y_train)
 rtr.score(X_train,Y_train)
-# R squared is 0.852 - Pretty good
+# R squared is 0.868 - Pretty good
 
 rtr.score(X_test,Y_test)
-# 0.241 - it does not appear this current model is generalizable
+# 0.267 - it does not appear this current model is generalizable
 
 preds = rtr.predict(X_test)
 np.sqrt(mean_squared_error(Y_test, preds))
-# 1148.69 - only mildly better than the linear regression model
+# 1146.71 - only mildly better than the linear regression model
 
 # Plot residuals
 resid = preds - np.ravel(Y_test)
@@ -86,8 +118,7 @@ plt.scatter(preds, resid, alpha=0.7)
 plt.xlabel("Predicted Riders per Train")
 plt.ylabel("Residuals")
 plt.show()
-#-- The residuals are all over the place
-#-- Probably will not use random forest model
+#- The residuals seem to have a linear relationship
 
 #=======================================================#
 # GRADIENT BOOSTING MODEL (TRIMMED DATA)
@@ -96,59 +127,31 @@ plt.show()
 gbm = ensemble.GradientBoostingRegressor()
 gbm.fit(X_train, Y_train)
 gbm.score(X_train, Y_train)
-# R^2 is 0.41 - worse than random forest model
+# R^2 is 0.454 - worse than random forest model
 
 gbm.score(X_test,Y_test)
-# R^2 = 0.345 - better at predicting virgin data
+# R^2 = 0.356 - better than RF at predicting unseen data
 preds = gbm.predict(X_test)
 np.sqrt(mean_squared_error(Y_test, preds))
-# RMSE = 1067.07 - performs better than random forest and linear regression model
+# RMSE = 1074.53 - performs better than random forest and linear regression model
 
 # Look at feature importance in the two models
 f_select = pd.DataFrame(data=rtr.feature_importances_, index=X.columns.values, columns=['RF'])
 f_select['GBM'] = gbm.feature_importances_
-#- In general, they agree about which features are more important.
+f_select
+#- In general, they agree about which features are important.
 
 #==========================================================#
-# FEATURE SELECTION (TRIMMED DATASET) - LINEAR REGRESSION
+# LINEAR REGRESSION MODEL (COMPLETE TRIMMED DATASET)
 #==========================================================#
-
-
-def feat_sel(feats, resp):  # Function to run feature selection
-    std_feats = scale(feats)  # Standardize features
-    std_resp = scale(resp)  # Standardize response variable
-    # Run f-test for feature selection
-    ftest = f_regression(std_feats, std_resp)
-    feat_sel = pd.DataFrame(data=ftest[0], index=feats.columns.values, columns=['F_score'])  # makes data frame with p values
-    feat_sel['p_values'] = ftest[1]  # Make p-values column
-    return feat_sel  # print out feature selection
-
-feat_sel(X,Y)  # Run feature selection on trimmed dataset
-#-- Let's put the threshold at F_score of 30.
-
-# Use only feats that have an F-score over the threshold
-new_feats = ['TMAX', 'TMIN', 'SNWD', 'Gas_Price', 'Labor Force', 'Employment', 'Registered', 'Casual', 'Holiday', 'Month_1', 'Month_4', 'Month_6', 'Month_12']
-
-X_new = trim_data[new_feats]
-Y_new = trim_data[resp]
-
-#=======================================================#
-# SPLIT INTO TRAIN/TEST (TRIMMED DATASET)
-#=======================================================#
-# NOTE: This train/test dataset does not have all the features
-
-X_train, X_test, Y_train, Y_test = train_test_split(X_new, Y_new, test_size=0.3, random_state=1)
-
-#=======================================================#
-# LINEAR REGRESSION MODEL (TRIMMED DATASET)
-#=======================================================#
+# NOTE: This uses all the features
 
 # Linear regression model
-plm = LinearRegression()
-plm.fit(X_train, Y_train)
+alm = LinearRegression()
+alm.fit(X_train, Y_train)
 
-plm.intercept_
-plm.coef_
+alm.intercept_
+alm.coef_
 
 #============#
 # MODEL EVAL #
@@ -156,32 +159,69 @@ plm.coef_
 
 # Evaluate the fit of the model based off of the training set
 assert not np.any(np.isnan(X_test) | np.isinf(X_test))  # Just to be safe
-preds = plm.predict(X_test)
+preds = alm.predict(X_test)
 np.sqrt(mean_squared_error(Y_test,preds))
 # RMSE = 1159.95
 # Not bad. It's about equivalent to the standard deviation of the Riders per car variable
-
-# Function to plot predictions
-def plot_residuals(actual, predictions):
-    resid = predictions - actual
-    plt.scatter(predictions, resid, alpha=0.7)
-    plt.xlabel("Predicted Ridership per Train")
-    plt.ylabel("Residuals")
-    plt.show()
-    return plt
 
 plot_residuals(Y_test,preds)
 # Looking at the graph, it appears that the residuals fall more on the negative side
 # This model seems to lean towards predicting inaccurately on the lesser side than the higher side
 
+# Evaluate the model fit based off of cross validation
+cvrmse(X,Y,alm)
+# RMSE = 1180.55
 
-def cvrmse(X,Y,lm):
-    scores = cross_val_score(lm, X, Y, cv=20, scoring='mean_squared_error')
-    return np.mean(np.sqrt(-scores))
+#==========================================================#
+# FEATURE SELECTION (TRIMMED DATASET) - LINEAR REGRESSION
+#==========================================================#
+
+feat_sel(X,Y)  # Run feature selection on trimmed dataset
+#-- Let's put the threshold at F_score of 40 (completely arbitrary).
+
+# Use only feats that have an F-score over the threshold
+new_feats = ['TMAX', 'TMIN', 'SNWD', 'Gas_Price', 'Labor Force', 'Employment', 'Registered', 'Holiday', 'Month_1', 'Month_4', 'Month_6', 'Month_12']
+
+X_new = trim_data[new_feats]
+Y_new = trim_data[resp]
+
+#=======================================================#
+# SPLIT INTO TRAIN/TEST (TRIMMED DATASET)
+#=======================================================#
+# all features
+# with signficant features
+Xnew_train, Xnew_test, Ynew_train, Ynew_test = train_test_split(X_new, Y_new, test_size=0.3, random_state=1)
+
+#==========================================================#
+# LINEAR REGRESSION MODEL (COMPLETE TRIMMED DATASET)
+#==========================================================#
+# NOTE: This model uses only significant features
+
+# Linear regression model
+fslm = LinearRegression()
+fslm.fit(Xnew_train, Ynew_train)
+
+fslm.intercept_
+fslm.coef_
+
+#============#
+# MODEL EVAL #
+#============#
+
+# Evaluate the fit of the model based off of the training set
+assert not np.any(np.isnan(Xnew_test) | np.isinf(Xnew_test))  # Just to be safe
+preds = fslm.predict(Xnew_test)
+np.sqrt(mean_squared_error(Ynew_test,preds))
+# RMSE = 1248.77
+# Not bad. It's about equivalent to the standard deviation of the Riders per car variable
+
+plot_residuals(Ynew_test,preds)
+# Looking at the graph, it appears that the residuals fall more on the negative side
+# This model seems to lean towards predicting inaccurately on the lesser side than the higher side
 
 # Evaluate the model fit based off of cross validation
-cvrmse(X,Y,plm)
-# RMSE = 1172.18
+cvrmse(X_new,Y_new,fslm)
+# RMSE = 1256.35
 
 ##########################################################################
 
@@ -243,16 +283,15 @@ relm.coef_
 assert not np.any(np.isnan(Xh_test) | np.isinf(Xh_test))  # Just to be safe
 preds = holm.predict(Xh_test)
 np.sqrt(mean_squared_error(Yh_test,preds))
-# RMSE = 1742.9
+# RMSE = 1285.39
 
 # Plot the residuals across the range of predicted values
 plot_residuals(Yh_test,preds)
-# All over the place. Probably because some holidays, people will travel more.
-# And some holidays, people will travel less. Also, very few observations.
+# Predictions very scattered. Small sample size makes for a not very good model.
 
 # Evaluate the model fit based off of cross validation
 cvrmse(X_holiday,Y_holiday,holm)
-# RMSE from cross validation = 1460.26
+# RMSE from cross validation = 1549.11
 
 #===================#
 # REGULAR DAY MODEL
@@ -261,7 +300,7 @@ cvrmse(X_holiday,Y_holiday,holm)
 assert not np.any(np.isnan(Xr_test) | np.isinf(Xr_test))  # Just to be safe
 preds = relm.predict(Xr_test)
 np.sqrt(mean_squared_error(Yr_test, preds))
-# RMSE = 1153.83
+# RMSE = 1148.61
 
 # Plot the residuals across the range of predicted values
 plot_residuals(Yr_test,preds)
@@ -270,7 +309,7 @@ plot_residuals(Yr_test,preds)
 
 # Evaluate the model fit based off of cross validation
 cvrmse(X_regular,Y_regular,relm)
-# RMSE from cross validation = 1148.03
+# RMSE from cross validation = 1148.39
 
 #- Because there were so few holidays in the dataset, this model performed
 #- just as well as the one with no split at all.
@@ -326,21 +365,21 @@ wngr.fit(Xwkend_train, Ywkend_train)
 
 #------- WEEKDAY MODEL -------#
 wgr.score(Xwkday_train, Ywkday_train)  # Train sets R^2
-# R^2 = 0.645
+# R^2 = 0.692
 wgr.score(Xwkday_test, Ywkday_test)  # Test sets R^2
-# R^2 = 0.567
+# R^2 = 0.527
 preds = wgr.predict(Xwkday_test)
 np.sqrt(mean_squared_error(Ywkday_test,preds))
-# RMSE = 601.14 - better than linear regression
+# RMSE = 686.65 - better than linear regression
 
 #------ WEEKEND MODEL --------#
 wngr.score(Xwkend_train, Ywkend_train)  # Train sets R^2
-# R^2 = 0.672
+# R^2 = 0.683
 wngr.score(Xwkend_test, Ywkend_test)  # Test sets R^2
-# R^2 = 0.433
+# R^2 = 0.443
 preds = wngr.predict(Xwkend_test)
 np.sqrt(mean_squared_error(Ywkend_test,preds))
-# RMSE = 630.56 - better than linear regression
+# RMSE = 588.01 - better than linear regression
 
 #=======================================================#
 # FEATURE SELECTION (WEEKDAY/WEEKEND)
@@ -355,7 +394,7 @@ feat_sel(X_wkend, Y_wkend)
 
 # Weekday features (thresdhold: F-score>40)
 wkday_feats = ['SNWD', 'TMAX', 'TMIN', 'Gas_Price', 'Labor Force', 'Employment', 'Unemployment', 'Holiday', 'Registered', 'Month_1', 'Month_4', 'Month_6', 'Month_7', 'Month_12']
-wkend_feats = ['PRCP', 'SNOW', 'TMAX', 'TMIN', 'Gas_Price', 'Labor Force', 'Employment', 'Holiday', 'Casual', 'Month_1', 'Month_4', 'Month_12']
+wkend_feats = ['TMAX', 'TMIN', 'Gas_Price', 'Labor Force', 'Employment', 'Holiday', 'Casual', 'Month_1', 'Month_4', 'Month_12']
 
 # Replace old datasets with new one with selected features
 X_wkday = X_wkday[wkday_feats]
@@ -402,7 +441,7 @@ wnlm.coef_
 assert not np.any(np.isnan(Xwkday_test) | np.isinf(Xwkday_test))  # Just to be safe
 preds = wlm.predict(Xwkday_test)
 np.sqrt(mean_squared_error(Ywkday_test,preds))
-# RMSE = 691.60
+# RMSE = 749.19
 # Performs better than the model of the full dataset
 
 # Plot the residuals across the range of predicted values
@@ -411,7 +450,7 @@ plot_residuals(Ywkday_test,preds)
 
 # Evaluate the model fit based off of cross validation
 cvrmse(X_wkday,Y_wkday,wlm)
-# RMSE from cross validation = 682.08 - slightly worse than gradient boosting
+# RMSE from cross validation = 695.08 - slightly worse than gradient boosting
 
 #===============#
 # WEEKEND MODEL
@@ -421,7 +460,7 @@ cvrmse(X_wkday,Y_wkday,wlm)
 assert not np.any(np.isnan(Xwkend_test) | np.isinf(Xwkend_test))  # Just to be safe
 preds = wnlm.predict(Xwkend_test)
 np.sqrt(mean_squared_error(Ywkend_test, preds))
-# RMSE = 689.92
+# RMSE = 618.12
 # Much worse at predicting weekend ridership
 
 # Plot the residuals across the range of predicted values
@@ -430,7 +469,7 @@ plot_residuals(Ywkend_test,preds)
 
 # Evaluate the model fit based off of cross validation
 cvrmse(X_wkend, Y_wkend, wnlm)
-# RMSE from cross validation = 655.93 - slightly worse than gradient boosting
+# RMSE from cross validation = 662.37 - slightly worse than gradient boosting
 
 #-- This double model performs better than the full dataset model
 #-- However, the lower sample size for weekend will cause issues with how
