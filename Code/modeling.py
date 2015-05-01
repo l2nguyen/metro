@@ -110,11 +110,14 @@ X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.3, random_
 
 rtr = ensemble.RandomForestRegressor()
 rtr.fit(X_train,Y_train)
-rtr.score(X_train,Y_train)
-# R squared is 0.868 - Pretty good
 
+# R squared values
+rtr.score(X_train,Y_train)
+# R^2 = 0.868 - Pretty good
 rtr.score(X_test,Y_test)
-# 0.267 - it does not appear this current model is generalizable
+# R^2 = 0.267 - it does not appear this current model is generalizable
+rtr.score(X,Y)
+# R^2 = 0.696
 
 preds = rtr.predict(X_test)
 np.sqrt(mean_squared_error(Y_test, preds))
@@ -134,11 +137,15 @@ plt.show()
 
 gbm = ensemble.GradientBoostingRegressor()
 gbm.fit(X_train, Y_train)
+
+# R squared values
 gbm.score(X_train, Y_train)
 # R^2 is 0.454 - worse than random forest model
-
 gbm.score(X_test,Y_test)
 # R^2 = 0.356 - better than RF at predicting unseen data
+gbm.score(X,Y)
+# R^2 = 0.430
+
 preds = gbm.predict(X_test)
 np.sqrt(mean_squared_error(Y_test, preds))
 # RMSE = 1074.53 - performs better than random forest and linear regression model
@@ -170,6 +177,14 @@ np.sqrt(mean_squared_error(Y_test,preds))
 # RMSE = 1159.95
 # Not bad. It's about equivalent to the standard deviation of the Riders per car variable
 
+# R squared values
+alm.score(X_train, Y_train)
+# R^2 = 0.251
+alm.score(X_test,Y_test)
+# R^2 = 0.253
+alm.score(X,Y)
+# R^2 = 0.251
+
 plot_residuals(Y_test,preds)
 # Looking at the graph, it appears that the residuals fall more on the negative side
 # This model seems to lean towards predicting inaccurately on the lesser side than the higher side
@@ -186,7 +201,7 @@ cvrmse(X,Y,alm)
 # FEATURE SELECTION (TRIMMED DATASET) - LINEAR REGRESSION
 #==========================================================#
 
-feat_sel(X,Y)  # Run feature selection on trimmed dataset
+feat_sel(X_train,Y_train)  # Run feature selection on trimmed dataset
 #-- Let's put the threshold at F_score of 40 (completely arbitrary).
 
 # Use only feats that have an F-score over the threshold
@@ -224,6 +239,14 @@ preds = fslm.predict(Xnew_test)
 np.sqrt(mean_squared_error(Ynew_test,preds))
 # RMSE = 1248.77
 # Not bad. It's about equivalent to the standard deviation of the Riders per car variable
+
+# R squared values
+fslm.score(Xnew_train, Ynew_train)
+# R^2 = 0.146
+fslm.score(Xnew_test,Ynew_test)
+# R^2 = 0.136
+fslm.score(X_new,Y_new)
+# R^2 = 0.143
 
 plot_residuals(Ynew_test,preds)
 # Looking at the graph, it appears that the residuals fall more on the negative side
@@ -377,21 +400,27 @@ wngr.fit(Xwkend_train, Ywkend_train)
 
 #------- WEEKDAY MODEL -------#
 wgr.score(Xwkday_train, Ywkday_train)  # Train sets R^2
-# R^2 = 0.692
+# R^2 = 0.695
 wgr.score(Xwkday_test, Ywkday_test)  # Test sets R^2
-# R^2 = 0.527
+# R^2 = 0.546
+wgr.score(X_wkday, Y_wkday)
+# R^2 = 0.644
+
 preds = wgr.predict(Xwkday_test)
 np.sqrt(mean_squared_error(Ywkday_test,preds))
-# RMSE = 686.65 - better than linear regression
+# RMSE = 671.17 - better than linear regression
 
 #------ WEEKEND MODEL --------#
 wngr.score(Xwkend_train, Ywkend_train)  # Train sets R^2
-# R^2 = 0.683
+# R^2 = 0.708
 wngr.score(Xwkend_test, Ywkend_test)  # Test sets R^2
-# R^2 = 0.443
+# R^2 = 0.412
+wngr.score(X_wkend, Y_wkend)
+# R^2 = 0.62
+
 preds = wngr.predict(Xwkend_test)
 np.sqrt(mean_squared_error(Ywkend_test,preds))
-# RMSE = 588.01 - better than linear regression
+# RMSE = 604.65 - better than linear regression
 
 #=======================================================#
 # FEATURE SELECTION (WEEKDAY/WEEKEND)
@@ -456,6 +485,14 @@ np.sqrt(mean_squared_error(Ywkday_test,preds))
 # RMSE = 749.19
 # Performs better than the model of the full dataset
 
+# R squared values
+wlm.score(Xwkday_train, Ywkday_train)
+# R^2 = 0.450
+wlm.score(Xwkday_test,Ywkday_test)
+# R^2 = 0.455
+wlm.score(X_wkday,Y_wkday)
+# R^2 = 0.452
+
 # Plot the residuals across the range of predicted values
 plot_residuals(Ywkday_test,preds)
 # Got most of the points right but some points are pretty off driving up the RMSE
@@ -478,6 +515,14 @@ preds = wnlm.predict(Xwkend_test)
 np.sqrt(mean_squared_error(Ywkend_test, preds))
 # RMSE = 618.12
 # Much worse at predicting weekend ridership
+
+# R squared values
+wnlm.score(Xwkend_train, Ywkend_train)
+# R^2 = 0.278
+wnlm.score(Xwkend_test,Ywkend_test)
+# R^2 = 0.366
+wnlm.score(X_wkend,Y_wkend)
+# R^2 = 0.304
 
 # Plot the residuals across the range of predicted values
 plot_residuals(Ywkend_test,preds)
