@@ -665,6 +665,7 @@ data.isnull().sum()  # check it worked
 
 # Add binary variable of months into original data frame to use months as features
 data = pd.concat([data, pd.get_dummies(data['Month'], prefix='Month')], axis=1)
+data = pd.concat([data, pd.get_dummies(data['Weekday'])], axis=1)
 data.columns.values  # Check it worked
 
 # Create ridership per train variable
