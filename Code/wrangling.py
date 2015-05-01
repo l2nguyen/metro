@@ -553,7 +553,7 @@ assert len(data) == 4018  # Should be 4018 obs
 # Replace NaN values with 0 to make it a binary variable
 data['Holiday'].fillna(value=0, inplace=True)
 data['Holiday'].isnull().sum()  # check it worked
-data['Holiday']=data['Holiday'].astype('int8') # Turn into integer
+data['Holiday'] = data['Holiday'].astype('int8')  # Turn into integer
 
 #=======================================================#
 # CAPITAL BIKESHARE DATA
@@ -618,6 +618,10 @@ data.index = range(0,len(data.index))  # Re-indexing after sort
 data.head(10)  # Checked it worked
 data.columns.values  # Check that the column names are all correct
 
+#=================================#
+# CLEAN IRREGULAR TRAIN SCHEDULES #
+#=================================#
+
 #- HOLIDAY SCHEDULE
 #- Holidays that fall on a weekday run on a Saturday schedule except for major holidays
 #- (ie Christmas), where it runs on a Sunday schedule. Let's just change it all to
@@ -653,4 +657,71 @@ data['Cars'][(data['Year'].isin(inaug_year)) & (data['Month'] == 1) & (data['Day
 # EXPORT COMPILED DATASET #
 #=========================#
 
+# Create ridership per train variable
+data['RidersPC'] = data['Riders']/data['Cars']
+data.head()  # Check it worked
+
 data.to_csv('model_data.csv', index=False)
+
+#=======================================================#
+# SCATTER PLOTS
+#=======================================================#
+
+# Scatter matrix with weather data and Rider per Train
+wdata = ['RidersPC','PRCP','SNWD','SNOW','TMAX','TMIN']
+wscatter = data[wdata]
+
+pd.scatter_matrix(wscatter)
+
+#===============#
+# WEEKDAY PLOTS #
+#===============#
+
+weekday = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri']
+weekday = data[data.Weekday.isin(weekday)]
+
+# Scatter plot with Unemployment Rate
+plt.scatter(weekday.Unemp_Rate, weekday.RidersPC, alpha=.8, color='r')
+plt.xlabel("Unemployment Rate")
+plt.ylabel("Riders per Train")
+plt.show()
+#- In general, the employment rate seems to not really have much of a relationship
+#- with total number of riders
+
+# Scatter plot with total number of people employed
+plt.scatter(weekday.Employment, weekday.RidersPC, alpha=.8, color='b')
+plt.xlabel("Total number of people employed (Number of person, in thousands)")
+plt.ylabel("Riders per Train")
+plt.show()
+#- Slight upward trend but not a clear relationship
+
+# Scatter plot with gas prices
+plt.scatter(weekday.Gas_Price, weekday.RidersPC, alpha=.8, color='b')
+plt.xlabel("Gas Price in Lower Atlantic Area")
+plt.ylabel("Riders per Train")
+plt.show()
+
+# Scatter plot with number of trips taken by registered CaBi riders
+plt.scatter(weekday.Registered, weekday.RidersPC, alpha=.8, color='r')
+plt.xlabel("Total Number of Trips by Registered Riders")
+plt.ylabel("Riders per Train")
+plt.show()
+# Does not appear to be a clear relationship
+
+plt.scatter(weekday.Casual, weekday.RidersPC, alpha=.8, color='b')
+plt.xlabel("Total Number of Trips by Casual Riders")
+plt.ylabel("Riders per Train")
+plt.show()
+# Does not appear to be a clear relationship
+
+# Bar graph of average holiday travel versus Regular day
+data.groupby('Holiday').RidersPC.mean().plot(kind='bar',color='b')
+plt.xlabel('Holiday')
+plt.ylabel('Riders Per Train')
+plt.show()
+# Quite the difference in number of riders per train
+# Same graph but for weekdays. Difference should be more pronounced.
+weekday.groupby('Holiday').RidersPC.mean().plot(kind='bar',color='r')
+plt.xlabel('Holiday')
+plt.ylabel('Riders Per Train')
+plt.show()
