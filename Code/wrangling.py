@@ -654,12 +654,26 @@ inaug_year = [2005, 2009, 2013]
 data['Cars'][(data['Year'].isin(inaug_year)) & (data['Month'] == 1) & (data['Day'] == 20)] = 190
 
 #=========================#
-# EXPORT COMPILED DATASET #
+# FINAL DATA MANIPULATION #
 #=========================#
+
+# Bikeshare did not exist before 2010 so will fill NaN values with 0
+# for all the models
+data['Registered'].fillna(value=0, inplace=True)
+data['Casual'].fillna(value=0, inplace=True)
+data.isnull().sum()  # check it worked
+
+# Add binary variable of months into original data frame to use months as features
+data = pd.concat([data, pd.get_dummies(data['Month'], prefix='Month')], axis=1)
+data.columns.values  # Check it worked
 
 # Create ridership per train variable
 data['RidersPC'] = data['Riders']/data['Cars']
 data.head()  # Check it worked
+
+#=========================#
+# EXPORT COMPILED DATASET #
+#=========================#
 
 data.to_csv('model_data.csv', index=False)
 
