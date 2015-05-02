@@ -62,10 +62,10 @@ In the above graph, red is weekend days and blue is weekday days. The data point
 Since a linear regression model is extremely sensitive to outliers, I had to identify and find ways to deal with outliers. To identify outliers, I standardized the Riders per Train variable into z-scores. The z-scores will show me how many standard deviations (SD) the value is from the mean. There were 16 observations that were +/- 3 SD away from the mean, out of a total of 4018 total observations. Luckily, this is less than 1% of the data so removing all these outliers would not greatly affect my sample size. From looking at the characteristics of the outliers, many of the outliers are Christmas Day or other major holidays. These days would naturally have very low ridership. I decided on trimming data points that were greater than +/- 3.5 SD away. This resulted in the removal of two data points from the datset: October 39, 2012 (Metro completely closed for Hurricane Sandy) and January 19, 2009 (the day before Obama's first inaguaration).
 
 ## Modeling
-#### Full dataset models
+#### Full dataset models (w/o binary days of the week variables)
 Because my response variable is continuous and I wanted interpretable results from my model, I decided that the best model to use would be a linear regression. However, since I was curious about how a linear regression model would perform against other models, I also fitted a random forest model and gradient boosting regressor model to the data. Although tree based models are not sensitive to outliers, I ran all three models on the same datasets since I only trimmed two outliers. Since I just wanted to look at the baseline performance of the models, I did not do any parameter tuning for any of the models. 
 
-You can see in the table below that the Gradient Boosting Regressor model performs the best out of the four. Surprisingly, it also appears that removing noise by selecting features that are more significant (using p values) did not improve the performance of the linear regression model. Although the random forest also has the best R squared value for the dataset, it has starkly different values of R squared for the train (0.868) and test (0.267) datasets. The other models have fairly similar R squared values for both test and train datasets. The stark difference shows that the random forest model is overfitting the train dataset while the other models are perforing equally poorly in both train and test dataset.
+You can see in the table below that the Gradient Boosting Regressor model performs the best out of the four. Although the random forest also has the best R squared value for the dataset, it has starkly different values of R squared for the train (0.868) and test (0.267) datasets. The other models have fairly similar R squared values for both test and train datasets. The stark difference shows that the random forest model is overfitting the train dataset while the other models are perforing equally poorly in both train and test dataset.
 
 | Model       								| CV RMSE   | R squared |
 | ------------------------------------------|:---------:|:----------:
@@ -74,6 +74,44 @@ You can see in the table below that the Gradient Boosting Regressor model perfor
 | Random Forest Regressor     				| 1146.71   | 0.696		|
 | Gradient Boosting Regressor				| 1074.53  	| 0.430		|
 
-#### Split models
 
+#### Split Weekday/Weekend models
+Since the features have different effects on ridership during the weekend and weekday ridership, I decided to make two different models for weekend and weekday. For example, employment variables would have a huge effect on weekday ridership but a small effect on weekend ridership. Using the same features for both models might not make sense so I selected features based on p-values separately for the weekday and weekend data. 
 
+I ran both a linear regression and gradient boosting model on the weekday and the weekend datasets. The table below shows the performance of the models for the weekdays.
+
+###### Weekday
+| Model       								| CV RMSE   | R squared |
+| ------------------------------------------|:---------:|:----------:
+| Linear Regression (w/ feature selection)  | 749.19	| 0.455		|
+| Linear Regression (w/o feature selection) | 721.20	| 0.475		|
+| Gradient Boosting Regressor				| 617.17  	| 0.546		|
+
+###### Weekend
+| Model       								| CV RMSE   | R squared |
+| ------------------------------------------|:---------:|:----------:
+| Linear Regression (w/ feature selection)  | 662.37	| 0.366		|
+| Linear Regression (w/o feature selection) | 608.55	| 0.444		|
+| Gradient Boosting Regressor				| 604.65  	| 0.412		|
+
+This split model performs much better than the model with the full dataset. In this split model, the gradient boosting regressor model performs better than the linear regression model. The better performance of this split model led me to think to add days of the week as features into my full dataset model. 
+
+#### Full dataset models (w/ binary days of the week variables)
+With one line of code, I managed to increase my model's performance significantly. 
+```python
+data = pd.concat([data, pd.get_dummies(data['Weekday'])], axis=1)
+```
+
+| Model       								| CV RMSE   | R squared |
+| ------------------------------------------|:---------:|:----------:
+| Linear Regression (w/ feature selection)  | 613.76 	| 0.793		|
+| Linear Regression (w/o feature selection) | 581.80	| 0.821		|
+| Random Forest Regressor     				| 529.16   	| 0.844		|
+| Gradient Boosting Regressor				| 480.98  	| 0.871		|
+
+With the addition of the days of the week as features, both RMSE and R squared both improve significantly. 
+
+Looking at the graph below of the residuals of the best performing model (Gradient Boosting Regressor) as an example, it can be seen that there does not seem to be a pattern in where the residuals are the largest. All the models suffer from the same random pattern of larger residuals being random, suggesting that there are factors affecting ridership that are not yet captured in the feature space. 
+
+###### Graph of Residuals of Gradient Boosting Regressor Model versus Predicted Values
+![alt text](Graphs/Residuals GBM (Full model).png)
