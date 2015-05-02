@@ -109,9 +109,23 @@ data = pd.concat([data, pd.get_dummies(data['Weekday'])], axis=1)
 | Random Forest Regressor     				| 529.16   	| 0.844		|
 | Gradient Boosting Regressor				| 480.98  	| 0.871		|
 
-With the addition of the days of the week as features, both RMSE and R squared both improve significantly. 
+With the addition of the binary variables of the days of the week as features, both RMSE and R squared both improve significantly. 
 
 Looking at the graph below of the residuals of the best performing model (Gradient Boosting Regressor) as an example, it can be seen that there does not seem to be a pattern in where the residuals are the largest. All the models suffer from the same random pattern of larger residuals being random, suggesting that there are factors affecting ridership that are not yet captured in the feature space. 
 
 ###### Graph of Residuals of Gradient Boosting Regressor Model versus Predicted Values
 ![alt text](Graphs/Residuals GBM (Full model).png)
+
+## Challenges and Lessons Learned
+* Finding publicly available and data processing data takes a significant amount of time. There were many times when I was searching for datasets, transforming data, or combining data where I wished I had done a kaggle competition instead. In the end,I did learn a lot of pandas data manipulation commands although it was a very useful (although time consuming) exercise.
+* Experienced advice would have probably saved some time. I have no background in transportation planning so I was pretty much shooting in the dark as to what features to incldue in my dataset. I used what the data said and my intuition to think of features but I could have easily missed a very important factor because I have a very shallow understanding of things that affect ridership on public transportation.
+* People are so hard to predict. Many factors affect whether a person will take the metrorail or another form of transportation to their destination. The model assumes that people will most likely assume making the same decision after evaluation certain factors. However, humans are fairly unpredictable making it hard to fit a really good model. 
+
+## Future work
+* Add more features: from looking at the residuals, my data is missing factors that affect metro ridership. I either did not have time or could not find publicly available data for these following factors:
+..* Sporting events: Because these venues are easily accessible by metro, many people take the metro to see the baseball, hockey and basketball game.
+..* Cultural/political events: One of my outliers was the Rally to Restore Sanity and the Obama inauguration. WMATA also says that the Smithsonian Folk Festival also results in a higher ridership. DC has a lot of events on/around the National Mall and people usually take the metro there because parking issues.
+..* Uber/Lyft: Unfortunately, their data is not publicly available
+* Study the characteristics of the long haul versus short haul metrorail rides. People who metro in from far out from the suburbs will most likely be affected by different factors than those who are moving around in DC. For example, there is no Capital Bikeshare out there. Also, it is very expensive to take an Uber all the way from Fairfax county into DC or vice versa. This unfortunately will require more disaggregated ridership data than the one I am currently using. This may data may already available from WMATA.
+* Study how the new Silver Line has affected metro ridership. Has it increased metro ridership or has it stayed the same but people are moving from different stations now?
+* Interactive data visualization of how people are moving around through the metrorail system.This will also help us see if certain lines or stops have higher usage than other. Data science can help public transit systems adapt better to changing ridership on a day to day, or even hour to hour basis. 
