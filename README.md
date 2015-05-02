@@ -12,14 +12,16 @@ This is the class project for my General Assembly Data Science class.
 * Will make models of increasing complexity and see what works best
 
 **Guide:**
-* A detailed report can be found [here](Report.md)
+* A presentation can be found [here](Presentation.pdf)
+* Want more details? A report can be found [here](Report.md)
 * Graphs visualizing data can be found [here](Graphs)
 * Data wrangling code can be found [here](Code/wrangling.py)
-* Modelling code can be found [here](Code/modeling.py)
+* Modeling code can be found [here](Code/modeling.py)
 * Data dictionary can be found [here](Documentation.pdf)
 
 **To Do List**
-* Clean up wrangling and modeling code to be more elegant/shorter
+* Clean up code to be more elegant/shorter
+* Study the large residuals to see if they have anything in common
 * Parameter tuning of the models
 * Add data for days when sports games exis
 * Find better proxy for tourism
