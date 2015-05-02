@@ -19,8 +19,10 @@ This is the class project for my General Assembly Data Science class.
 * Data dictionary can be found [here](Documentation.pdf)
 
 **To Do List**
-* Parameter tuning
-* Add data for days when sports games exist
+* Clean up wrangling and modeling code to be more elegant/shorter
+* Parameter tuning of the models
+* Add data for days when sports games exis
+* Find better proxy for tourism
 
 **Wish List**
 * Make interactive data visualizations using javascript/d3. Maybe something like [this](http://mbtaviz.github.io/)
