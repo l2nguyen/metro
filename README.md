@@ -12,11 +12,11 @@ This is the class project for my General Assembly Data Science class.
 * Will make models of increasing complexity and see what works best
 
 **Guide:**
-* A more detailed report can be found [here](Report.md)
-* Data wrangling code can be found [here](Code/wrangling.py)
+* A detailed report can be found [here](Report.md)
 * Graphs visualizing data can be found [here](Graphs)
+* Data wrangling code can be found [here](Code/wrangling.py)
 * Modelling code can be found [here](Code/modeling.py)
-* Documentation can be found [here](Documentation.pdf)
+* Data dictionary can be found [here](Documentation.pdf)
 
 **To Do List**
 * Parameter tuning
