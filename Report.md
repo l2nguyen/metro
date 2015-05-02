@@ -101,8 +101,8 @@ With the addition of the binary variables of the days of the week as features, b
 
 | Model       								| CV RMSE   | R squared |
 | ------------------------------------------|:---------:|:----------:
-| Linear Regression (w/ feature selection)  | 613.76 	| 0.793		|
-| Linear Regression (w/o feature selection) | 581.80	| 0.821		|
+| Linear Regression (w/ feature selection)  | 576.64 	| 0.817		|
+| Linear Regression (w/o feature selection) | 575.56	| 0.821		|
 | Random Forest Regressor     				| 529.16   	| 0.844		|
 | Gradient Boosting Regressor				| 480.98  	| 0.871		|
 

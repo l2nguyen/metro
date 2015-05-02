@@ -58,7 +58,7 @@ def ttcompare(feat_test, resp_test, feat_train, resp_train, lm):  # Plot train/t
     plt.title('Residual plot using train (blue) and test (green) data')
     plt.ylabel('Residuals')
     plt.xlabel('Predicted Value')
-    plt.show()
+    plt.show()    
 
 #=============#
 # IMPORT DATA #
@@ -166,6 +166,8 @@ alm.fit(X_train, Y_train)
 alm.intercept_
 alm.coef_
 
+coeff = pd.DataFrame(data=np.ravel(alm.coef_.T), index=X.columns.values, columns=['Coefficients'])
+
 #============#
 # MODEL EVAL #
 #============#
@@ -195,7 +197,7 @@ ttcompare(X_test,Y_test,X_train,Y_train,alm)
 
 # Evaluate the model fit based off of cross validation
 cvrmse(X,Y,alm)
-# RMSE = 581.80
+# RMSE = 575.56
 
 #==========================================================#
 # FEATURE SELECTION (TRIMMED DATASET) - LINEAR REGRESSION
@@ -230,6 +232,8 @@ fslm.fit(Xnew_train, Ynew_train)
 fslm.intercept_
 fslm.coef_
 
+coeff = pd.DataFrame(data=np.ravel(fslm.coef_.T), index=X_new.columns.values, columns=['Coefficients'])
+
 #============#
 # MODEL EVAL #
 #============#
@@ -238,16 +242,16 @@ fslm.coef_
 assert not np.any(np.isnan(Xnew_test) | np.isinf(Xnew_test))  # Just to be safe
 preds = fslm.predict(Xnew_test)
 np.sqrt(mean_squared_error(Ynew_test,preds))
-# RMSE = 609.27
+# RMSE = 571.77
 # Not bad. It's about equivalent to the standard deviation of the Riders per car variable
 
 # R squared values
 fslm.score(Xnew_train, Ynew_train)
-# R^2 = 0.796
+# R^2 = 0.817
 fslm.score(Xnew_test,Ynew_test)
-# R^2 = 0.793
+# R^2 = 0.818
 fslm.score(X_new,Y_new)
-# R^2 = 0.795
+# R^2 = 0.817
 
 plot_residuals(Ynew_test,preds)
 # Looking at the graph, it appears that the residuals fall more on the negative side
@@ -257,7 +261,7 @@ ttcompare(Xnew_test,Ynew_test,Xnew_train,Ynew_train,fslm)
 
 # Evaluate the model fit based off of cross validation
 cvrmse(X_new,Y_new,fslm)
-# RMSE = 613.76
+# RMSE = 576.64
 
 ##########################################################################
 
