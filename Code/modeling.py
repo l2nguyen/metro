@@ -41,7 +41,7 @@ def feat_sel(feats, resp):  # Function to run feature selection
 def plot_residuals(actual, predictions):  # Function to plot predictions
     residuals = predictions - actual
     plt.scatter(actual, residuals, alpha=0.7)
-    plt.xlabel("Predicted Ridership per Train")
+    plt.xlabel("Actual Ridership per Train")
     plt.ylabel("Residuals")
     plt.show()
     return plt
@@ -125,11 +125,10 @@ np.sqrt(mean_squared_error(Y_test, preds))
 
 # Plot residuals
 resid = preds - np.ravel(Y_test)
-plt.scatter(preds, resid, alpha=0.7)
-plt.xlabel("Predicted Riders per Train")
+plt.scatter(Y_test, resid, alpha=0.7)
+plt.xlabel("Actual Riders per Train")
 plt.ylabel("Residuals")
 plt.show()
-#- The residuals seem to have a linear relationship
 
 #=======================================================#
 # GRADIENT BOOSTING MODEL (TRIMMED DATA)
@@ -155,6 +154,13 @@ f_select = pd.DataFrame(data=rtr.feature_importances_, index=X.columns.values, c
 f_select['GBM'] = gbm.feature_importances_
 f_select
 #- In general, they agree about which features are important.
+
+# Plot residuals
+resid = preds - np.ravel(Y_test)
+plt.scatter(Y_test, resid, alpha=0.7)
+plt.xlabel("Actual Riders per Train")
+plt.ylabel("Residuals")
+plt.show()
 
 #==========================================================#
 # LINEAR REGRESSION MODEL (COMPLETE TRIMMED DATASET)
