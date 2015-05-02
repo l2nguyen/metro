@@ -4,7 +4,7 @@ This is the class project for my General Assembly Data Science class.
 **Goals:** 
 * To visualize the DC Metro rail historical ridership data
 * To determine the variables that affect ridership
-* To build a model that detremines the relationship between the outcome, metrorail ridership, and the feature variables (ie gas price, weather, unemployment)
+* To build a model that detremines the relationship between the response (metrorail ridership) and the feature variables (ie gas price, weather, unemployment)
 
 **Game Plan:**
 * This is a regression problem and I plan to use a linear regression model 
